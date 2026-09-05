@@ -36,7 +36,9 @@ uv run landscape references examples/synthetic
 uv run landscape list-entities examples/synthetic
 uv run landscape report examples/synthetic
 uv run landscape report examples/synthetic --format json
-uv run landscape report examples/synthetic --format csv --output generated/report.csv
+uv run landscape report examples/synthetic --format csv
+uv run landscape report examples/synthetic --format json --output generated/report/custom_report.json
+uv run landscape report examples/synthetic --format schema
 uv run landscape inspect examples/synthetic TREE001
 uv run landscape inspect examples/synthetic HOUSE001
 uv run landscape quantities examples/synthetic

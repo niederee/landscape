@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import csv
-import json
 from pathlib import Path
 
 import typer
@@ -12,6 +10,16 @@ from rich.json import JSON
 from rich.table import Table
 
 from landscape_planner.analysis.validation import count_entities, validate_project
+from landscape_planner.analysis.reporting import (
+    DEFAULT_REPORT_CSV_PATH,
+    DEFAULT_REPORT_JSON_PATH,
+    DEFAULT_REPORT_SCHEMA_PATH,
+    build_report_payload,
+    build_report_schema,
+    write_report_csv,
+    write_report_json,
+    write_report_schema,
+)
 from landscape_planner.estimating.quantities import (
     existing_condition_quantities,
     format_quantity,
@@ -196,37 +204,44 @@ def report(
         "table",
         "--format",
         "-f",
-        help="Output format. Supported values: table, csv, json.",
+        help="Output format. Supported values: table, csv, json, schema.",
     ),
-    output: Path | None = typer.Option(None, "--output", "-o", help="CSV/JSON output path."),
+    output: Path | None = typer.Option(None, "--output", "-o", help="CSV/JSON/Schema output path."),
 ) -> None:
     """Summarize project validation, counts, quantities, and references."""
 
     project = _load_or_exit(project_path)
-    result = validate_project(project)
-    report_payload = _build_report_payload(project, result)
+    base = project_path if project_path.is_dir() else project_path.parent
 
-    if output_format == "json":
-        output_data = json.dumps(report_payload, indent=2, sort_keys=True)
+    if output_format == "schema":
         if output is None:
-            console.print(JSON.from_data(json.loads(output_data)))
-        else:
-            output.parent.mkdir(parents=True, exist_ok=True)
-            output.write_text(f"{output_data}\n", encoding="utf-8")
-            console.print(f"[green]Generated:[/green] {output}")
+            output = base / DEFAULT_REPORT_SCHEMA_PATH
+        write_report_schema(build_report_schema(), output)
+        console.print(f"[green]Generated:[/green] {output}")
         return
 
     if output_format == "csv":
+        result = validate_project(project)
+        report_payload = build_report_payload(project, result)
         if output is None:
-            base = project_path if project_path.is_dir() else project_path.parent
-            output = base / "generated" / "report" / "report.csv"
+            output = base / DEFAULT_REPORT_CSV_PATH
         write_report_csv(report_payload, output)
         console.print(f"[green]Generated:[/green] {output}")
         return
 
     if output_format != "table":
-        console.print("[red]Unsupported report format. Use table, csv, or json.[/red]")
+        result = validate_project(project)
+        report_payload = build_report_payload(project, result)
+        if output_format == "json":
+            if output is None:
+                output = base / DEFAULT_REPORT_JSON_PATH
+            written = write_report_json(report_payload, output)
+            console.print(f"[green]Generated:[/green] {written}")
+            return
+        console.print("[red]Unsupported report format. Use table, csv, json, or schema.[/red]")
         raise typer.Exit(code=2)
+
+    result = validate_project(project)
 
     console.print(f"[bold]Project Report:[/bold] {project.project_id}")
     console.print(f"[bold]Validation Status:[/bold] {'OK' if result.ok else 'FAILED'}")
@@ -336,90 +351,6 @@ def _load_or_exit(project_path: Path):
     except (ProjectLoadError, ValueError) as exc:
         console.print(f"[red]Unable to load project:[/red] {exc}")
         raise typer.Exit(code=1) from exc
-
-
-def _build_report_payload(project, result) -> dict:
-    totals = summarize_quantities(existing_condition_quantities(project))
-
-    return {
-        "project_id": project.project_id,
-        "validation": {
-            "ok": result.ok,
-            "errors": len(result.errors),
-            "warnings": len(result.warnings),
-            "infos": len(result.infos),
-            "messages": [
-                {
-                    "severity": message.severity,
-                    "code": message.code,
-                    "entity_id": message.entity_id,
-                    "message": message.message,
-                }
-                for message in result.messages
-            ],
-        },
-        "entity_counts": [
-            {"category": category, "count": total} for category, total in count_entities(project).items()
-        ],
-        "quantity_totals": [
-            {"category": category, "unit": unit, "quantity": quantity} for (category, unit), quantity in totals.items()
-        ],
-        "references": {
-            "documents": [document.id for document in sorted(project.reference_documents, key=lambda item: item.id)],
-            "site_photos": [photo.id for photo in sorted(project.site_photos, key=lambda item: item.id)],
-        },
-    }
-
-
-def write_report_csv(report_payload: dict, output_path: Path) -> None:
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["section", "category", "unit", "count", "value", "entity_id", "message_code", "message"])
-
-        validation = report_payload["validation"]
-        writer.writerow([
-            "validation",
-            "",
-            "",
-            "",
-            "",
-            "",
-            "",
-            f"errors={validation['errors']};warnings={validation['warnings']};infos={validation['infos']};ok={validation['ok']}",
-        ])
-
-        for item in report_payload["entity_counts"]:
-            writer.writerow(["entity_count", item["category"], "", item["count"], "", "", "", ""])
-
-        for item in report_payload["quantity_totals"]:
-            writer.writerow([
-                "quantity_total",
-                item["category"],
-                item["unit"],
-                "",
-                item["quantity"],
-                "",
-                "",
-                "",
-            ])
-
-        for document_id in report_payload["references"]["documents"]:
-            writer.writerow(["reference_document", "", "", "", "", document_id, "", ""])
-        for photo_id in report_payload["references"]["site_photos"]:
-            writer.writerow(["site_photo", "", "", "", "", photo_id, "", ""])
-
-        for message in validation["messages"]:
-            writer.writerow([
-                "validation_message",
-                message["entity_id"] or "",
-                "",
-                "",
-                "",
-                "",
-                message["code"],
-                message["message"],
-            ])
 
 
 if __name__ == "__main__":

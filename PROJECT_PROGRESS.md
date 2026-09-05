@@ -24,6 +24,7 @@ Milestone 1 existing-conditions modeling.
 - List project entities deterministically so stable IDs are discoverable from the CLI.
 - Add a basic existing-conditions report command for consolidated review output.
 - Add report export formats for downstream workflows.
+- Add machine-readable report schema and deterministic default artifact locations.
 
 ## Checklist
 
@@ -57,6 +58,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Add calculated geometry metrics to `landscape inspect`.
 - [x] Add `landscape list-entities`.
 - [x] Add `landscape report`.
+- [x] Add machine-readable report schema and default report artifact locations.
 
 ## Verification
 
@@ -127,6 +129,10 @@ Milestone 1 existing-conditions modeling.
 - Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape inspect projects/greenleaf PARCEL001`: passed.
 - Branch `milestone-1-existing-conditions-report`: `.venv/bin/uv run landscape --help` will include `report`.
 - Branch `milestone-1-existing-conditions-report`: `.venv/bin/uv run landscape report projects/greenleaf` is ready to verify once merged.
+- Branch `milestone-1-report-export`: `.venv/bin/uv run landscape report projects/greenleaf --format json` writes
+  `projects/greenleaf/generated/report/landscape_report.json`.
+- Branch `milestone-1-report-export`: `.venv/bin/uv run landscape report projects/greenleaf --format schema` writes
+  `projects/greenleaf/generated/report/landscape_report.schema.json`.
 
 ## Pull Request Status
 
@@ -154,6 +160,8 @@ Milestone 1 existing-conditions modeling.
 - Merged pull request: `https://github.com/niederee/landscape/pull/11`.
 - Working branch: `milestone-1-report-export`.
 - Pull request: `https://github.com/niederee/landscape/pull/12`.
+- Working branch: `milestone-1-report-schema`.
+- Pull request: `https://github.com/niederee/landscape/pull/13`.
 
 ## Remaining Limitations
 
@@ -169,7 +177,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Add explicit machine-readable report schema and artifact locations for CI or downstream tools.
+- Add explicit schema-version drift tests for report payload compatibility.
 
 ## Resume Notes
 

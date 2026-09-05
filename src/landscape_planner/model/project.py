@@ -71,7 +71,10 @@ class CoordinateSystem(BaseModel):
     type: Literal["local_cartesian"] = "local_cartesian"
     horizontal_units: Literal["ft"] = "ft"
     origin_description: str = "southwest_property_corner"
-    north_rotation_degrees: float = 0.0
+    north_rotation_degrees: float = Field(
+        default=0.0,
+        description="Clockwise angle from local +Y to north; rotates the arrow, not geometry.",
+    )
 
 
 class Jurisdiction(BaseModel):

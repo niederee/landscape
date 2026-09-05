@@ -1,10 +1,17 @@
 # Landscape Planner: Standalone HTML Review Package and Next-Step Specification
 
-**Status:** Proposed addendum; implementation review blocked by repository access  
+**Status:** Adopted direction; baseline reviewed and first HTML slice implemented in the accompanying PR
 **Prepared:** September 5, 2026  
 **Target repository:** `niederee/landscape`, branch `main`  
 **Reviewed commit:** Not available; no repository commit was retrieved  
 **Intended reader:** Coding agent with access to the repository and the homeowner/developer
+
+**Repository reconciliation:** The original access limitation below is historical.
+The current audit is in [`docs/PROJECT_DIRECTION_REVIEW.md`](docs/PROJECT_DIRECTION_REVIEW.md),
+with implementation decisions in [`docs/adr/0004-standalone-review-export.md`](docs/adr/0004-standalone-review-export.md).
+`PROJECT_PROGRESS.md` records executed verification and remaining release gaps.
+H2–H4 remain proposals; this document is not a claim that every H1 gate or
+target browser has been certified.
 
 > Evidence limitation: The GitHub connector returned HTTP 404 for the repository, `main`, `LANDSCAPE_PLANNER_SPEC.md`, and `PROJECT_PROGRESS.md`. Public-page and raw-file retrieval did not produce repository content. Therefore, this document does **not** claim to have reviewed the current implementation, validated progress claims, or run its tests. Its recommendations are based on the original specification provided in this conversation, the homeowner's request for standalone HTML, and the browser documentation referenced below. The original conversation specification is not a substitute for the current repository specification.
 >

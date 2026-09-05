@@ -2,7 +2,55 @@
 
 ## Current Phase
 
-Milestone 1 existing-conditions modeling.
+H1 portable existing-conditions review, alongside real-site capture.
+
+## Current Review and Implementation (September 5, 2026)
+
+- Audited freshly cloned `main` at `7bd72cd63ac23575ab5d92985fce35ad369a89e8`;
+  baseline regression suite: **62 passed** on Python 3.13.3.
+- Direction and actual gaps: `docs/PROJECT_DIRECTION_REVIEW.md`.
+- Architecture decision: `docs/adr/0004-standalone-review-export.md`.
+- Implementation branch: `feat/portable-landscape-review`.
+- Initial implementation commit: `6bcbb4c` (local). Publishing is blocked:
+  connector commit-tree creation returned HTTP 403, and local Git has no push
+  credentials. No remote branch, PR or CI result is claimed. Reconnect a GitHub
+  installation authorized to write `niederee/landscape`, then publish this branch.
+- Added `render --format html --profile share|private`, preserving SVG default.
+  `rendering/html.py` embeds the canonical SVG, navigation, layers, search,
+  linked feature inspection, quantities, static provenance and validation.
+- Share metadata filtering occurs before serialization; hostile text is escaped,
+  trusted inline assets use CSP hashes, exports are deterministic and atomic,
+  and the CLI protects source files and reference assets from overwrite.
+- Fixed parcel selection, north-arrow painting/orientation, nested door ID/source
+  checks and non-LineString validation. North rotation is clockwise from local
+  +Y; it changes the arrow, not authoritative site geometry.
+- Successfully generated synthetic and Greenleaf HTML and the synthetic SVG.
+  Example paths: `examples/synthetic/generated/html/L1.0_existing_conditions.html`
+  and `projects/greenleaf/generated/html/L1.0_existing_conditions.html`.
+  Synthetic source files are missing (2 warnings); Greenleaf survey is pending
+  (1 warning). These remain warnings under existing validation policy.
+- Updated suite: `uv run pytest -q` returned **85 passed, 2 skipped**.
+  The two skips are actual-browser tests; explicitly requiring the browser with
+  `LANDSCAPE_REQUIRE_BROWSER=1` correctly fails while Chromium is absent.
+- Browser installation was attempted but Chromium downloads timed out locally.
+  Actual offline browser interaction, CSP enforcement and visual layout remain
+  **not verified locally**. Browser tests exist; CI installs Chromium and requires
+  the browser tests instead of accepting an executable-missing skip.
+- Greenleaf has **not** been validated against the physical property. Its parcel
+  and house are low-confidence starter estimates.
+
+### Active acceptance status
+
+| Gate | Evidence / status |
+|---|---|
+| One-file generation, SVG geometry parity, deterministic bytes | Automated renderer/CLI tests and generated fixtures |
+| Privacy canaries, hostile text, source overwrite protection, invalid geometry | Automated unit/integration tests |
+| Copied-file offline navigation, layers, inspection, static fallback, CSP | Browser tests added; local run skipped because browser unavailable |
+| Visual layout, Firefox/Safari/Edge and mobile compatibility | Not certified |
+| Real property, design alternatives and cumulative phasing | Not implemented/verified |
+
+Historical decisions and command records below are retained for provenance;
+they are not a list of commands rerun in this review.
 
 ## Decisions
 
@@ -204,7 +252,10 @@ Milestone 1 existing-conditions modeling.
 ## Remaining Limitations
 
 - Only schema version 1 is supported.
-- Only `L1.0 Existing Conditions` SVG rendering is implemented.
+- Only `L1.0 Existing Conditions` SVG and standalone HTML rendering are implemented.
+- HTML omits doors, easements, setbacks and rights-of-way from the drawing and
+  explicitly identifies these omissions. Label collision layout and dimensioned
+  construction sheets remain future work.
 - Greenleaf contains split-file placeholder geometry that must be replaced by surveyed/measured data.
 - Missing local reference assets now emit warnings; strict mode fails the command when warnings are present.
 - Split-file loading currently supports `existing_conditions.yaml` and `references.yaml`.
@@ -215,9 +266,14 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Add CLI docs and examples for `landscape validate --strict`, and decide whether CI should default to strict mode.
+- Complete the browser/visual H1 gates, then replace Greenleaf placeholders using
+  the owner's survey and field observations. See the ordered capture checklist
+  in `docs/PROJECT_DIRECTION_REVIEW.md`.
+- After site capture, implement a small immutable-baseline concept resolver and
+  two authored alternatives that answer one actual homeowner design question.
 
 ## Resume Notes
 
-Start by reading this file and `LANDSCAPE_PLANNER_SPEC.md`. Continue with the
-next unchecked checklist item, then update this file before ending the session.
+Read the current section, `docs/PROJECT_DIRECTION_REVIEW.md`, and the two specs.
+Use the active acceptance gaps and next useful outcome, not old branch logs, to
+choose work. Record executed evidence and unverified limitations separately.

@@ -44,6 +44,7 @@ from landscape_planner.inspection import entity_inspection_payload, find_entity
 from landscape_planner.inspection import entity_display_name, iter_inspectable_entities
 from landscape_planner.io.yaml_loader import ProjectLoadError, load_project
 from landscape_planner.rendering.svg import render_existing_conditions_svg
+from landscape_planner.rendering.html import render_existing_conditions_html
 
 app = typer.Typer(help="Deterministic residential landscape planning tools.")
 console = Console()
@@ -400,10 +401,15 @@ def inspect(project_path: Path, entity_id: str) -> None:
 def render(
     project_path: Path,
     sheet: str = typer.Option("existing", "--sheet", help="Sheet to render. Currently: existing."),
-    output: Path | None = typer.Option(None, "--output", "-o", help="SVG output path."),
+    output: Path | None = typer.Option(None, "--output", "-o", help="SVG or HTML output path."),
+    output_format: str = typer.Option("svg", "--format", "-f", help="Output format: svg or html."),
+    profile: str = typer.Option("share", "--profile", help="HTML metadata profile: share or private."),
 ) -> None:
-    """Render deterministic SVG drawings from project data."""
+    """Render an SVG drawing or a portable, read-only HTML review file."""
 
+    if output_format not in {"svg", "html"} or profile not in {"share", "private"}:
+        console.print("[red]Use --format svg|html and --profile share|private.[/red]")
+        raise typer.Exit(code=2)
     if sheet != "existing":
         console.print("[red]Only --sheet existing is implemented in this phase.[/red]")
         raise typer.Exit(code=2)
@@ -416,12 +422,35 @@ def render(
             console.print(f"[red]ERROR[/red] {message.code}: {message.message}")
         raise typer.Exit(code=1)
 
+    base = project_path if project_path.is_dir() else project_path.parent
     if output is None:
-        base = project_path if project_path.is_dir() else project_path.parent
-        output = base / "generated" / "svg" / "L1.0_existing_conditions.svg"
+        output = base / "generated" / output_format / f"L1.0_existing_conditions.{output_format}"
 
-    written = render_existing_conditions_svg(project, output)
+    protected = {base / name for name in ("project.yaml", "references.yaml", "existing_conditions.yaml")}
+    if project_path.is_file():
+        protected.add(project_path)
+    protected.update(base / item.filename for item in [*project.reference_documents, *project.site_photos])
+    if output.resolve() in {path.resolve() for path in protected} or (
+        output.exists() and any(path.exists() and output.samefile(path) for path in protected)
+    ):
+        console.print("[red]Output would overwrite a project input or reference asset.[/red]")
+        raise typer.Exit(code=2)
+    if output_format == "html" and output.suffix.lower() != ".html":
+        console.print(f"[red]Output must have a .{output_format} extension.[/red]")
+        raise typer.Exit(code=2)
+    for message in result.warnings:
+        console.print(f"[yellow]WARNING[/yellow] {message.code}: {message.message}")
+    try:
+        if output_format == "html":
+            written = render_existing_conditions_html(project, output, profile=profile, validation_result=result)
+        else:
+            written = render_existing_conditions_svg(project, output)
+    except (OSError, ValueError) as exc:
+        console.print(f"[red]Unable to render:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
     console.print(f"[green]Generated:[/green] {written}")
+    if output_format == "html":
+        console.print(f"Existing conditions; profile={profile}; warnings={len(result.warnings)}; bytes={written.stat().st_size}")
 
 
 def _load_or_exit(project_path: Path):

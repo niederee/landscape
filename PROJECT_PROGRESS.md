@@ -103,6 +103,7 @@ Milestone 1 existing-conditions modeling.
 - Working branch: `milestone-1-reference-metadata`.
 - Pull request: `https://github.com/niederee/landscape/pull/5`.
 - Working branch: `milestone-1-split-references`.
+- Pull request: `https://github.com/niederee/landscape/pull/6`.
 
 ## Remaining Limitations
 

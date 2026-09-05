@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from landscape_planner.inspection import entity_to_dict, find_entity
+from landscape_planner.inspection import calculated_metrics, entity_inspection_payload, entity_to_dict, find_entity
 from landscape_planner.io.yaml_loader import load_project
 
 
@@ -43,3 +43,48 @@ def test_entity_to_dict_uses_yaml_aliases():
     assert data["type"] == "hvac"
     assert "utility_type" not in data
 
+
+def test_calculated_metrics_include_polygon_area_centroid_and_bounds():
+    project = load_project(FIXTURE)
+    result = find_entity(project, "PARCEL001")
+
+    metrics = calculated_metrics(result.entity)
+
+    assert metrics["geometry_type"] == "Polygon"
+    assert metrics["bounds"] == [0.0, 0.0, 80.0, 130.0]
+    assert metrics["centroid"] == [40.0, 65.0]
+    assert metrics["area_sqft"] == 10400.0
+    assert metrics["perimeter_ft"] == 420.0
+
+
+def test_calculated_metrics_include_tree_canopy_area():
+    project = load_project(FIXTURE)
+    result = find_entity(project, "TREE001")
+
+    metrics = calculated_metrics(result.entity)
+
+    assert metrics["geometry_type"] == "Point"
+    assert metrics["canopy_radius_ft"] == 13.0
+    assert metrics["canopy_area_sqft"] == 530.077
+
+
+def test_calculated_metrics_include_utility_clearance_area():
+    project = load_project(FIXTURE)
+    result = find_entity(project, "UTIL001")
+
+    metrics = calculated_metrics(result.entity)
+
+    assert metrics["geometry_type"] == "Point"
+    assert metrics["clearance_area_sqft"] == 28.229
+    assert metrics["clearance_bounds"] == [73.0, 47.0, 79.0, 53.0]
+
+
+def test_inspection_payload_separates_source_from_calculated_values():
+    project = load_project(FIXTURE)
+    result = find_entity(project, "HOUSE001")
+
+    payload = entity_inspection_payload(result)
+
+    assert payload["category"] == "structure"
+    assert payload["source"]["id"] == "HOUSE001"
+    assert payload["calculated"]["area_sqft"] == 2475.0

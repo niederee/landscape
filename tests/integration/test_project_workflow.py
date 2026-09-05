@@ -85,8 +85,11 @@ def test_inspect_cli_reports_one_entity_as_json():
 
     assert result.exit_code == 0
     assert "tree TREE001" in result.output
+    assert '"source": {' in result.output
+    assert '"calculated": {' in result.output
     assert '"id": "TREE001"' in result.output
     assert '"common_name": "Live Oak"' in result.output
+    assert '"canopy_area_sqft": 530.077' in result.output
 
 
 def test_inspect_cli_fails_for_missing_entity():

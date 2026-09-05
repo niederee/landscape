@@ -16,7 +16,7 @@ from landscape_planner.estimating.quantities import (
     summarize_quantities,
     write_quantities_csv,
 )
-from landscape_planner.inspection import entity_to_dict, find_entity
+from landscape_planner.inspection import entity_inspection_payload, find_entity
 from landscape_planner.io.yaml_loader import ProjectLoadError, load_project
 from landscape_planner.rendering.svg import render_existing_conditions_svg
 
@@ -166,7 +166,7 @@ def inspect(project_path: Path, entity_id: str) -> None:
         raise typer.Exit(code=1)
 
     console.print(f"[bold]{result.category}[/bold] {result.entity.id}")
-    console.print(JSON.from_data(entity_to_dict(result.entity)))
+    console.print(JSON.from_data(entity_inspection_payload(result)))
 
 
 @app.command()

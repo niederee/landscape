@@ -57,6 +57,7 @@ Milestone 1 existing-conditions modeling.
 - Pushed branch: `origin/milestone-0-foundation`.
 - Pull request: `https://github.com/niederee/landscape/pull/1`.
 - Working branch: `milestone-1-utilities-clearance`.
+- Pull request: `https://github.com/niederee/landscape/pull/2`.
 
 ## Remaining Limitations
 

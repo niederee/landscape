@@ -33,6 +33,7 @@ Validate and render the synthetic existing-conditions project:
 ```bash
 uv run landscape validate examples/synthetic
 uv run landscape references examples/synthetic
+uv run landscape inspect examples/synthetic TREE001
 uv run landscape quantities examples/synthetic
 uv run landscape quantities examples/synthetic --format csv
 uv run landscape render examples/synthetic --sheet existing

@@ -19,6 +19,7 @@ Milestone 1 existing-conditions modeling.
 - Validate entity `source.reference` values against declared reference document and photo IDs or filenames.
 - Load optional `references.yaml` files for reference documents and site photos while preserving single-file project support.
 - Split the Greenleaf starter project into separate metadata, reference, and existing-conditions YAML files.
+- Inspect one project entity by stable ID from the CLI.
 
 ## Checklist
 
@@ -48,6 +49,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Validate source references against declared project metadata.
 - [x] Add optional split-file loading for `references.yaml`.
 - [x] Split Greenleaf into `project.yaml`, `references.yaml`, and `existing_conditions.yaml`.
+- [x] Add `landscape inspect`.
 
 ## Verification
 
@@ -95,6 +97,13 @@ Milestone 1 existing-conditions modeling.
 - Branch `milestone-1-split-greenleaf`: `.venv/bin/uv run landscape references projects/greenleaf`: passed.
 - Branch `milestone-1-split-greenleaf`: `.venv/bin/uv run landscape quantities projects/greenleaf --format csv`: generated `projects/greenleaf/generated/csv/existing_conditions_quantities.csv`.
 - Branch `milestone-1-split-greenleaf`: `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
+- Branch `milestone-1-inspect-entity`: `.venv/bin/uv run pytest`: 29 passed.
+- Branch `milestone-1-inspect-entity`: `.venv/bin/uv run landscape --help`: listed `inspect`.
+- Branch `milestone-1-inspect-entity`: `.venv/bin/uv run landscape validate examples/synthetic`: passed with 0 errors and 0 warnings.
+- Branch `milestone-1-inspect-entity`: `.venv/bin/uv run landscape validate projects/greenleaf`: passed with 0 errors and 0 warnings.
+- Branch `milestone-1-inspect-entity`: `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
+- Branch `milestone-1-inspect-entity`: `.venv/bin/uv run landscape inspect projects/greenleaf PARCEL001`: passed.
+- Branch `milestone-1-inspect-entity`: `.venv/bin/uv run landscape inspect examples/synthetic TREE001`: passed.
 
 ## Pull Request Status
 
@@ -113,6 +122,7 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/6`.
 - Working branch: `milestone-1-split-greenleaf`.
 - Pull request: `https://github.com/niederee/landscape/pull/7`.
+- Working branch: `milestone-1-inspect-entity`.
 
 ## Remaining Limitations
 
@@ -121,13 +131,14 @@ Milestone 1 existing-conditions modeling.
 - Greenleaf contains split-file placeholder geometry that must be replaced by surveyed/measured data.
 - Reference records do not require local files to exist yet and do not parse document contents.
 - Split-file loading currently supports `existing_conditions.yaml` and `references.yaml`.
+- Inspection currently reports existing schema data only; it does not yet show calculated geometry metrics.
 - Quantity reporting and CSV export cover existing conditions only and do not yet calculate costs.
 - Phase dependency validation, concepts, costs, PDF, and DXF remain future milestones.
 
 ## Next Smallest Useful Step
 
-Add a lightweight `landscape inspect` command for looking up one entity by stable ID
-before real Greenleaf data entry grows the project file set.
+Add calculated geometry metrics to `landscape inspect` output for geometric entities,
+including area, length, centroid, and bounds where applicable.
 
 ## Resume Notes
 

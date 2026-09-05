@@ -78,3 +78,19 @@ def test_greenleaf_project_loads_from_split_files():
     assert project.project_id == "greenleaf"
     assert project.reference_documents[0].id == "REF_SURVEY_PENDING"
     assert project.existing_conditions.parcel.source.reference == "REF_SURVEY_PENDING"
+
+
+def test_inspect_cli_reports_one_entity_as_json():
+    result = RUNNER.invoke(app, ["inspect", str(FIXTURE), "TREE001"])
+
+    assert result.exit_code == 0
+    assert "tree TREE001" in result.output
+    assert '"id": "TREE001"' in result.output
+    assert '"common_name": "Live Oak"' in result.output
+
+
+def test_inspect_cli_fails_for_missing_entity():
+    result = RUNNER.invoke(app, ["inspect", str(FIXTURE), "MISSING"])
+
+    assert result.exit_code == 1
+    assert "Entity not found" in result.output

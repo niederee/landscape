@@ -18,6 +18,8 @@ def test_synthetic_project_loads_and_validates():
 
     assert result.ok
     assert project.project_id == "synthetic"
+    assert len(project.reference_documents) == 1
+    assert len(project.site_photos) == 1
     assert project.existing_conditions.parcel.area_sqft == 10400
     assert len(project.existing_conditions.utilities) == 1
 
@@ -56,3 +58,12 @@ def test_quantities_cli_writes_csv(tmp_path):
     assert "Generated:" in result.output
     assert output.exists()
     assert "total,lawn,,,2175,sqft\n" in output.read_text(encoding="utf-8")
+
+
+def test_references_cli_lists_documents_and_photos():
+    result = RUNNER.invoke(app, ["references", str(FIXTURE)])
+
+    assert result.exit_code == 0
+    assert "Reference Documents" in result.output
+    assert "REF_SURVEY_SYNTHETIC" in result.output
+    assert "PHOTO_BACKYARD_001" in result.output

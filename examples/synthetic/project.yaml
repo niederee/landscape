@@ -14,6 +14,22 @@ coordinate_system:
   horizontal_units: ft
   origin_description: southwest_property_corner
   north_rotation_degrees: 0
+reference_documents:
+  - id: REF_SURVEY_SYNTHETIC
+    name: Synthetic Demo Survey
+    document_type: property_survey
+    filename: references/survey/synthetic_property_survey.pdf
+    date: 2026-09-05
+site_photos:
+  - id: PHOTO_BACKYARD_001
+    filename: references/photos/backyard_northwest.jpg
+    camera_location: [42, 80]
+    direction_degrees: 315
+    description: Backyard view toward northwest corner
+    date: 2026-09-05
+    tags:
+      - backyard
+      - privacy
 existing_conditions:
   parcel:
     id: PARCEL001
@@ -25,6 +41,10 @@ existing_conditions:
         - [80, 0]
         - [80, 130]
         - [0, 130]
+    source:
+      type: manual_estimate
+      reference: REF_SURVEY_SYNTHETIC
+      confidence: medium
   structures:
     - id: HOUSE001
       name: House

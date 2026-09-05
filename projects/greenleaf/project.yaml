@@ -14,6 +14,14 @@ coordinate_system:
   horizontal_units: ft
   origin_description: southwest_property_corner
   north_rotation_degrees: 0
+reference_documents:
+  - id: REF_SURVEY_PENDING
+    name: Closing Property Survey
+    document_type: property_survey
+    filename: references/survey/closing_property_survey.pdf
+    notes:
+      - Placeholder record for the real Greenleaf survey document.
+site_photos: []
 existing_conditions:
   parcel:
     id: PARCEL001
@@ -27,6 +35,7 @@ existing_conditions:
         - [0, 130]
     source:
       type: manual_estimate
+      reference: REF_SURVEY_PENDING
       confidence: low
     notes:
       - Replace starter geometry with surveyed Greenleaf property boundary.

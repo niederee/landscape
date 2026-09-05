@@ -53,6 +53,7 @@ def validate_project(project: LandscapeProject) -> ValidationResult:
     parcel_shape = conditions.parcel.boundary.to_shape()
 
     messages.extend(_validate_unique_ids(project))
+    messages.extend(_validate_source_references(project))
     messages.extend(_validate_polygon("parcel boundary", conditions.parcel.id, parcel_shape))
 
     polygon_entities = [
@@ -159,6 +160,8 @@ def count_entities(project: LandscapeProject) -> dict[str, int]:
 
     conditions = project.existing_conditions
     return {
+        "Reference documents": len(project.reference_documents),
+        "Site photos": len(project.site_photos),
         "Parcel": 1,
         "Structures": len(conditions.structures),
         "Hardscape": len(conditions.hardscape),
@@ -185,6 +188,8 @@ def _validate_unique_ids(project: LandscapeProject) -> Iterable[ValidationMessag
 
 
 def _iter_entities(project: LandscapeProject) -> Iterable[Entity]:
+    yield from project.reference_documents
+    yield from project.site_photos
     conditions = project.existing_conditions
     yield conditions.parcel
     yield from conditions.structures
@@ -218,6 +223,29 @@ def _validate_polygon(label: str, entity_id: str, shape: BaseGeometry) -> Iterab
             f"{entity_id} {label} polygon has no positive area.",
             entity_id,
         )
+
+
+def _validate_source_references(project: LandscapeProject) -> Iterable[ValidationMessage]:
+    known_references = {
+        item
+        for document in project.reference_documents
+        for item in (document.id, document.filename)
+    }
+    known_references.update(
+        item
+        for photo in project.site_photos
+        for item in (photo.id, photo.filename)
+    )
+    for entity in _iter_entities(project):
+        if entity.source is None or entity.source.reference is None:
+            continue
+        if entity.source.reference not in known_references:
+            yield ValidationMessage(
+                "ERROR",
+                "UNKNOWN_SOURCE_REFERENCE",
+                f"{entity.id} source references {entity.source.reference}, but it is not declared.",
+                entity.id,
+            )
 
 
 def _validate_utility_clearance(

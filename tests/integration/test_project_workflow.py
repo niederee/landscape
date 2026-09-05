@@ -9,6 +9,7 @@ from landscape_planner.rendering.svg import render_existing_conditions_svg
 
 
 FIXTURE = Path("tests/fixtures/synthetic")
+GREENLEAF = Path("projects/greenleaf")
 RUNNER = CliRunner()
 
 
@@ -67,3 +68,13 @@ def test_references_cli_lists_documents_and_photos():
     assert "Reference Documents" in result.output
     assert "REF_SURVEY_SYNTHETIC" in result.output
     assert "PHOTO_BACKYARD_001" in result.output
+
+
+def test_greenleaf_project_loads_from_split_files():
+    project = load_project(GREENLEAF)
+    result = validate_project(project)
+
+    assert result.ok
+    assert project.project_id == "greenleaf"
+    assert project.reference_documents[0].id == "REF_SURVEY_PENDING"
+    assert project.existing_conditions.parcel.source.reference == "REF_SURVEY_PENDING"

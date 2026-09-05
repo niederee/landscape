@@ -60,3 +60,11 @@ references.yaml
 reference_documents: []
 site_photos: []
 ```
+
+The starter Greenleaf project uses this split-file layout:
+
+```text
+projects/greenleaf/project.yaml
+projects/greenleaf/references.yaml
+projects/greenleaf/existing_conditions.yaml
+```

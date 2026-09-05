@@ -187,7 +187,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Add migration notes for future schema-bearing artifacts.
+- Add migration notes for future schema-bearing artifacts (e.g., quantities, reference manifests).
 
 ## Resume Notes
 

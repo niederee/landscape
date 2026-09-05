@@ -92,6 +92,18 @@ def test_list_entities_cli_filters_by_category():
     assert "Entities: 3" in result.output
 
 
+def test_report_cli_includes_counts_quantities_and_references():
+    result = RUNNER.invoke(app, ["report", str(FIXTURE)])
+
+    assert result.exit_code == 0
+    assert "Project Report:" in result.output
+    assert "Validation" in result.output
+    assert "Entity Counts" in result.output
+    assert "Errors" in result.output
+    assert "Existing-Conditions Quantity Totals" in result.output
+    assert "Reference Summary" in result.output
+
+
 def test_greenleaf_project_loads_from_split_files():
     project = load_project(GREENLEAF)
     result = validate_project(project)

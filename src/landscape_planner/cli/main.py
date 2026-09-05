@@ -188,6 +188,72 @@ def list_entities(
 
 
 @app.command()
+def report(project_path: Path) -> None:
+    """Summarize project validation, counts, quantities, and references."""
+
+    project = _load_or_exit(project_path)
+    result = validate_project(project)
+
+    console.print(f"[bold]Project Report:[/bold] {project.project_id}")
+
+    validation = Table(title="Validation")
+    validation.add_column("Status")
+    validation.add_column("Count", justify="right")
+    validation.add_row("Errors", str(len(result.errors)))
+    validation.add_row("Warnings", str(len(result.warnings)))
+    validation.add_row("Overall", "OK" if result.ok else "FAILED")
+    console.print(validation)
+
+    if result.messages:
+        messages = Table(title="Validation Messages")
+        messages.add_column("Severity")
+        messages.add_column("Code")
+        messages.add_column("Entity")
+        messages.add_column("Message")
+        for message in result.messages:
+            style = {"ERROR": "red", "WARNING": "yellow", "INFO": "cyan"}.get(message.severity, "white")
+            entity = message.entity_id or ""
+            messages.add_row(
+                f"[{style}]{message.severity}[/{style}]",
+                message.code,
+                entity,
+                message.message,
+            )
+        console.print(messages)
+
+    counts = Table(title="Entity Counts")
+    counts.add_column("Category")
+    counts.add_column("Count", justify="right")
+    for category, total in count_entities(project).items():
+        counts.add_row(category, str(total))
+    console.print(counts)
+
+    quantities = Table(title="Existing-Conditions Quantity Totals")
+    quantities.add_column("Category")
+    quantities.add_column("Quantity", justify="right")
+    quantities.add_column("Unit")
+    for (category, unit), quantity in summarize_quantities(existing_condition_quantities(project)).items():
+        quantities.add_row(category, format_quantity(quantity), unit)
+    console.print(quantities)
+
+    references = Table(title="Reference Summary")
+    references.add_column("Type")
+    references.add_column("Count", justify="right")
+    references.add_column("IDs")
+    references.add_row(
+        "Reference Documents",
+        str(len(project.reference_documents)),
+        ", ".join(document.id for document in sorted(project.reference_documents, key=lambda item: item.id)),
+    )
+    references.add_row(
+        "Site Photos",
+        str(len(project.site_photos)),
+        ", ".join(photo.id for photo in sorted(project.site_photos, key=lambda item: item.id)),
+    )
+    console.print(references)
+
+
+@app.command()
 def inspect(project_path: Path, entity_id: str) -> None:
     """Inspect one project entity by stable ID."""
 

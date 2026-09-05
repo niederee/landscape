@@ -426,7 +426,7 @@ def render(
     if output is None:
         output = base / "generated" / output_format / f"L1.0_existing_conditions.{output_format}"
 
-    protected = {base / name for name in ("project.yaml", "references.yaml", "existing_conditions.yaml")}
+    protected = {base / name for name in ("project.yaml", "references.yaml", "existing_conditions.yaml", "planning.yaml")}
     if project_path.is_file():
         protected.add(project_path)
     protected.update(base / item.filename for item in [*project.reference_documents, *project.site_photos])
@@ -451,6 +451,100 @@ def render(
     console.print(f"[green]Generated:[/green] {written}")
     if output_format == "html":
         console.print(f"Existing conditions; profile={profile}; warnings={len(result.warnings)}; bytes={written.stat().st_size}")
+
+
+
+@app.command("compare")
+def compare(
+    project_path: Path,
+    planning: Path | None = typer.Option(None, "--planning", help="Planning YAML; defaults to planning.yaml beside project."),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    profile: str = typer.Option("share", "--profile"),
+) -> None:
+    """Review existing conditions and independently authored alternatives offline."""
+    _planning_export(project_path, planning, output, profile, phases=False)
+
+
+@app.command("phases")
+def phases(
+    project_path: Path,
+    planning: Path | None = typer.Option(None, "--planning"),
+    output: Path | None = typer.Option(None, "--output", "-o"),
+    profile: str = typer.Option("share", "--profile"),
+) -> None:
+    """Review cumulative construction phases, dependencies and sourced cost ranges."""
+    _planning_export(project_path, planning, output, profile, phases=True)
+
+
+def _planning_export(project_path, planning_path, output, profile, *, phases):
+    import os
+    import tempfile
+    from landscape_planner.planning.document import load_planning
+    from landscape_planner.planning.concepts import compare_projects, resolve_concept
+    from landscape_planner.planning.phases import resolve_phases
+    from landscape_planner.rendering.comparison import comparison_html
+
+    if profile not in {"share", "private"}:
+        console.print("Use --profile share|private.")
+        raise typer.Exit(code=2)
+    project = _load_or_exit(project_path)
+    base = project_path if project_path.is_dir() else project_path.parent
+    planning_path = planning_path or base / "planning.yaml"
+    output = output or base / "generated/html" / ("phases.html" if phases else "alternatives.html")
+    protected = {base / name for name in ("project.yaml", "references.yaml", "existing_conditions.yaml", "planning.yaml")}
+    protected.add(planning_path)
+    if project_path.is_file():
+        protected.add(project_path)
+    protected.update(base / item.filename for item in [*project.reference_documents, *project.site_photos])
+    if output.resolve() in {path.resolve() for path in protected} or (
+        output.exists() and any(path.exists() and output.samefile(path) for path in protected)
+    ):
+        console.print("Output would overwrite a project input or reference asset.")
+        raise typer.Exit(code=2)
+    if output.suffix.lower() != ".html":
+        console.print("Output must have a .html extension.")
+        raise typer.Exit(code=2)
+    try:
+        document = load_planning(planning_path)
+        snapshots = [("existing", "Existing conditions", project)]
+        metadata = {}
+        if phases:
+            if not document.phases:
+                raise ValueError("No construction phases are declared.")
+            resolved = resolve_phases(project, document.phases)
+            if document.selected_concept:
+                selected = next(c for c in document.concepts if c.id == document.selected_concept)
+                target = resolve_concept(project, selected)
+                delta = compare_projects(target, resolved[-1].project)
+                if any(delta[key] for key in ("added", "removed", "modified")):
+                    raise ValueError("Final phase does not match selected_concept; reconcile the phase operations with the selected design.")
+            for snapshot in resolved:
+                snapshots.append((snapshot.phase.id, snapshot.phase.name, snapshot.project))
+                metadata[snapshot.phase.id] = {
+                    "cost": snapshot.cost.model_dump(mode="json"), "cumulative_cost": snapshot.cumulative_cost.model_dump(mode="json"),
+                    "warnings": snapshot.warnings, "depends_on": snapshot.phase.depends_on,
+                    "cost_items": [item.model_dump(mode="json") for item in snapshot.phase.cost_items],
+                }
+        else:
+            if not document.concepts:
+                raise ValueError("No design alternatives are declared.")
+            snapshots.extend((c.id, c.name, resolve_concept(project, c)) for c in document.concepts)
+        html = comparison_html(snapshots, profile=profile, project_root=project_path, metadata=metadata)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=output.parent,
+                                             prefix=f".{output.name}.", suffix=".tmp", delete=False) as handle:
+                temporary = Path(handle.name)
+                handle.write(html)
+            os.replace(temporary, output)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
+    except (OSError, ValueError) as exc:
+        console.print(f"Unable to export planning review: {exc}", markup=False)
+        raise typer.Exit(code=1) from exc
+    console.print(f"Generated: {output}; snapshots={len(snapshots)}; profile={profile}", markup=False)
 
 
 def _load_or_exit(project_path: Path):

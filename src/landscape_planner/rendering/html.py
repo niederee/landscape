@@ -61,6 +61,12 @@ _JS = """'use strict';
  const entities = new Map(data.entities.map(e => [e.id, e]));
  const initial = [0, 0, 1632, 1056]; let box = initial.slice(); let drag = null;
  function draw() { svg.setAttribute('viewBox', box.join(' ')); }
+ window.addEventListener('landscape-camera', e => {
+   const next = e.detail;
+   if (Array.isArray(next) && next.length === 4 && next.every(Number.isFinite) && next[2] > 0 && next[3] > 0) {
+     box = next.slice(); draw();
+   }
+ });
  function select(id) {
    const e = entities.get(id); if (!e) return;
    features.forEach(n => n.classList.toggle('selected', n.dataset.entityId === id));

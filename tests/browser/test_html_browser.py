@@ -58,6 +58,16 @@ def test_file_url_works_offline_with_controls_and_safe_inspection(tmp_path, brow
     page.locator("#fit").click()
     assert svg.get_attribute("viewBox") == initial
 
+    original_box = [float(value) for value in initial.split()]
+    page.get_by_role("button", name="Pan right", exact=True).click()
+    panned_box = [float(value) for value in svg.get_attribute("viewBox").split()]
+    assert panned_box[0] > original_box[0]
+    assert panned_box[1:] == original_box[1:]
+    page.get_by_role("button", name="Pan down", exact=True).click()
+    assert float(svg.get_attribute("viewBox").split()[1]) > original_box[1]
+    page.locator("#fit").click()
+    assert svg.get_attribute("viewBox") == initial
+
     toggle = page.locator("input[data-layer]").first
     layer = page.locator("#" + toggle.get_attribute("data-layer"))
     toggle.uncheck()
@@ -78,6 +88,17 @@ def test_file_url_works_offline_with_controls_and_safe_inspection(tmp_path, brow
     feature.focus()
     page.keyboard.press("Enter")
     assert "TREE001" in page.locator("#inspector").inner_text()
+
+    # On a phone-width viewport, the alternative to tiny SVG targets stays usable.
+    page.set_viewport_size({"width": 390, "height": 844})
+    page.locator("#search").fill("DOES_NOT_EXIST")
+    assert page.locator("#entity-list button:visible").count() == 0
+    page.locator("#search").fill("TREE001")
+    page.locator('#entity-list button[data-entity-id="TREE001"]').click()
+    assert "TREE001" in page.locator("#inspector").inner_text()
+    page.locator("#fit").click()
+    assert svg.get_attribute("viewBox") == initial
+    assert svg.is_visible()
     page.emulate_media(media="print")
     assert not page.locator("#zoom-in").is_visible()
     assert svg.is_visible()

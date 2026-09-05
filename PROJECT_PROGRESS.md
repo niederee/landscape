@@ -23,6 +23,7 @@ Milestone 1 existing-conditions modeling.
 - Include calculated geometry metrics in `landscape inspect` output under a separate `calculated` block.
 - List project entities deterministically so stable IDs are discoverable from the CLI.
 - Add a basic existing-conditions report command for consolidated review output.
+- Add report export formats for downstream workflows.
 
 ## Checklist
 
@@ -150,8 +151,8 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/9`.
 - Working branch: `milestone-1-list-entities`.
 - Pull request: `https://github.com/niederee/landscape/pull/10`.
-- Working branch: `milestone-1-existing-conditions-report`.
-- Pull request: `https://github.com/niederee/landscape/pull/11`.
+- Merged pull request: `https://github.com/niederee/landscape/pull/11`.
+- Working branch: `milestone-1-report-export`.
 
 ## Remaining Limitations
 
@@ -167,7 +168,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-Add a rich report format for export (for example CSV/JSON) to feed downstream workflows.
+- Add explicit machine-readable report schema and artifact locations for CI or downstream tools.
 
 ## Resume Notes
 

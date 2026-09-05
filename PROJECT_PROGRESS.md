@@ -27,6 +27,7 @@ Milestone 1 existing-conditions modeling.
 - Add machine-readable report schema and deterministic default artifact locations.
 - Add explicit schema-version compatibility checks for report payloads.
 - Add migration notes for breaking report schema changes.
+- Add migration notes for other schema-bearing artifacts (quantities and reference manifests).
 
 ## Checklist
 
@@ -63,6 +64,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Add machine-readable report schema and default report artifact locations.
 - [x] Add schema-version compatibility checks for report payloads.
 - [x] Add migration notes for breaking report schema changes.
+- [x] Add migration notes for other schema-bearing artifacts (quantities and reference manifests).
 
 ## Verification
 
@@ -139,6 +141,8 @@ Milestone 1 existing-conditions modeling.
   `projects/greenleaf/generated/report/landscape_report.schema.json`.
 - Branch `milestone-1-report-schema-stability`: `.venv/bin/uv run pytest tests/unit/test_report_schema.py`.
 - Branch `milestone-1-report-schema-migrations`: Migration policy docs for report schema changes.
+- Working branch: `milestone-1-schema-planning`.
+- Pull request: `https://github.com/niederee/landscape/pull/16`.
 
 ## Pull Request Status
 
@@ -172,10 +176,13 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/14`.
 - Working branch: `milestone-1-report-schema-migrations`.
 - Pull request: `https://github.com/niederee/landscape/pull/15`.
+- Working branch: `milestone-1-schema-planning`.
+- Pull request: `https://github.com/niederee/landscape/pull/16`.
 
 ## Remaining Limitations
 
 - Only schema version 1 is supported.
+- Quantity and reference manifest machine-readable schema versions are not implemented yet.
 - Only `L1.0 Existing Conditions` SVG rendering is implemented.
 - Greenleaf contains split-file placeholder geometry that must be replaced by surveyed/measured data.
 - Reference records do not require local files to exist yet and do not parse document contents.
@@ -187,7 +194,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Add migration notes for future schema-bearing artifacts (e.g., quantities, reference manifests).
+- Implement machine-readable schema versioning for quantities and reference manifests.
 
 ## Resume Notes
 

@@ -1,0 +1,43 @@
+schema_version: 1
+concepts:
+- id: pool_test
+  name: Synthetic pool placement test
+  operations:
+  - action: add
+    category: hardscape
+    entity_id: POOL_TEST
+    data:
+      name: Test pool footprint
+      subtype: pool
+      status: proposed
+      geometry:
+        type: polygon
+        coordinates:
+        - - 33
+          - 106
+        - - 53
+          - 106
+        - - 53
+          - 118
+        - - 33
+          - 118
+- id: bed_test
+  name: Planting in a pool-only exclusion
+  operations:
+  - action: add
+    category: planting_beds
+    entity_id: BED_TEST
+    data:
+      name: Planting not excluded by pool rule
+      status: proposed
+      geometry:
+        type: polygon
+        coordinates:
+        - - 2
+          - 108
+        - - 5
+          - 108
+        - - 5
+          - 118
+        - - 2
+          - 118

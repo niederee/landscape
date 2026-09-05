@@ -66,6 +66,8 @@ def iter_inspectable_entities(project: LandscapeProject) -> Iterable[InspectedEn
         yield InspectedEntity("planting_bed", bed)
     for lawn in sorted(conditions.lawn, key=lambda item: item.id):
         yield InspectedEntity("lawn", lawn)
+    for constraint in sorted(conditions.site_constraints, key=lambda item: item.id):
+        yield InspectedEntity("site_constraint", constraint)
     for utility in sorted(conditions.utilities, key=lambda item: item.id):
         yield InspectedEntity("utility", utility)
 

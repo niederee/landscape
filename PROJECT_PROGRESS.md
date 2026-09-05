@@ -2,7 +2,28 @@
 
 ## Current Phase
 
-H2 authored alternatives and H3 cumulative phase review, alongside real-site capture.
+Survey-based provisional testing, scoped constraints and real-site capture.
+
+## Survey Test Readiness (September 5, 2026)
+
+- Baseline: merged PR #23 at `3d548b8`. Its full CI suite passed, including Chromium.
+- Survey bearing/distance reconstruction now reports closure without modifying
+  supplied courses. Rejected closure/invalid polygons produce no usable boundary.
+- Added scoped, source-traceable exclusions and independent observed fences.
+  Proposed pool overlaps fail; planting is not rejected by a pool-only exclusion.
+  Existing context fences can be outside the parcel with an explicit warning.
+- SVG/HTML show black property boundaries, purple fences and red exclusion zones
+  independently. Layers, scope, dimensions and source confidence are inspectable.
+- Added a synthetic boundary/constraint test fixture and CLI/browser regressions.
+- Real-property survey traces belong in an owner-controlled working project.
+  Public Greenleaf starter data remains unchanged. An annotated scan can support
+  a provisional base-plan test, but obscured details and current conditions need
+  reconciliation before reliable design clearances or takeoffs.
+- Local verification: **205 passed, 5 skipped** (Chromium unavailable).
+  Synthetic survey/render/comparison commands and the separate provisional
+  property test generated successfully; new required browser CI is pending.
+  The property test exposed an oblique-boundary floating point containment
+  issue; fixed with an area tolerance and a synthetic regression.
 
 ## Alternatives and Phases Implementation (September 5, 2026)
 

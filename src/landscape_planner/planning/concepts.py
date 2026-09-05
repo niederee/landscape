@@ -61,6 +61,7 @@ class Concept(BaseModel):
 def _all_ids(project: LandscapeProject) -> set[str]:
     conditions = project.existing_conditions
     ids = {conditions.parcel.id}
+    ids.update(item.id for item in conditions.site_constraints)
     ids.update(item.id for item in project.reference_documents)
     ids.update(item.id for item in project.site_photos)
     for category in CATEGORIES:

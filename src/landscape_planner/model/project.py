@@ -210,10 +210,39 @@ class LinearFeature(Entity):
     material: str | None = None
     status: LifecycleStatus = "existing"
     phase: str | None = None
+    placement: Literal["on_site", "context"] = "on_site"
 
     @property
     def length_ft(self) -> float:
         return self.geometry.to_shape().length
+
+
+class SiteConstraint(Entity):
+    """A source-traceable, supplied exclusion applying to hardscape subtypes.
+
+    Use an explicit polygon or a parcel exterior edge and inward distance.
+    These records express project assumptions, not verified legal requirements.
+    """
+
+    geometry: GeometryData | None = None
+    edge_index: int | None = Field(default=None, ge=0)
+    distance_ft: float | None = Field(default=None, gt=0, allow_inf_nan=False)
+    applies_to: list[str] = Field(default_factory=lambda: ["pool"], min_length=1)
+    restriction: Literal["exclude"] = "exclude"
+
+    @model_validator(mode="after")
+    def validate_zone_definition(self) -> "SiteConstraint":
+        edge_fields = self.edge_index is not None or self.distance_ft is not None
+        if self.geometry is not None:
+            if edge_fields:
+                raise ValueError("Use geometry or edge_index/distance_ft, not both.")
+            if self.geometry.type != "polygon":
+                raise ValueError("Site constraint geometry must be a polygon.")
+        elif self.edge_index is None or self.distance_ft is None:
+            raise ValueError("Site constraint requires geometry or both edge_index and distance_ft.")
+        if any(not subtype.strip() for subtype in self.applies_to):
+            raise ValueError("applies_to must contain nonempty hardscape subtypes.")
+        return self
 
 
 class Tree(Entity):
@@ -323,6 +352,7 @@ class ExistingConditions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     parcel: Parcel
+    site_constraints: list[SiteConstraint] = Field(default_factory=list)
     structures: list[Structure] = Field(default_factory=list)
     hardscape: list[HardscapeArea] = Field(default_factory=list)
     linear_features: list[LinearFeature] = Field(default_factory=list)

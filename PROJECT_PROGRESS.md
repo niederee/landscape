@@ -18,6 +18,7 @@ Milestone 1 existing-conditions modeling.
 - Track source reference documents and site-photo survey metadata in structured project data.
 - Validate entity `source.reference` values against declared reference document and photo IDs or filenames.
 - Load optional `references.yaml` files for reference documents and site photos while preserving single-file project support.
+- Split the Greenleaf starter project into separate metadata, reference, and existing-conditions YAML files.
 
 ## Checklist
 
@@ -46,6 +47,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Add `landscape references`.
 - [x] Validate source references against declared project metadata.
 - [x] Add optional split-file loading for `references.yaml`.
+- [x] Split Greenleaf into `project.yaml`, `references.yaml`, and `existing_conditions.yaml`.
 
 ## Verification
 
@@ -88,6 +90,11 @@ Milestone 1 existing-conditions modeling.
 - Branch `milestone-1-split-references`: `.venv/bin/uv run pytest`: 22 passed.
 - Branch `milestone-1-split-references`: `.venv/bin/uv run landscape validate tests/fixtures/split_references`: passed with 0 errors and 0 warnings.
 - Branch `milestone-1-split-references`: `.venv/bin/uv run landscape references tests/fixtures/split_references`: passed.
+- Branch `milestone-1-split-greenleaf`: `.venv/bin/uv run pytest`: 23 passed.
+- Branch `milestone-1-split-greenleaf`: `.venv/bin/uv run landscape validate projects/greenleaf`: passed with 0 errors and 0 warnings.
+- Branch `milestone-1-split-greenleaf`: `.venv/bin/uv run landscape references projects/greenleaf`: passed.
+- Branch `milestone-1-split-greenleaf`: `.venv/bin/uv run landscape quantities projects/greenleaf --format csv`: generated `projects/greenleaf/generated/csv/existing_conditions_quantities.csv`.
+- Branch `milestone-1-split-greenleaf`: `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
 
 ## Pull Request Status
 
@@ -104,12 +111,13 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/5`.
 - Working branch: `milestone-1-split-references`.
 - Pull request: `https://github.com/niederee/landscape/pull/6`.
+- Working branch: `milestone-1-split-greenleaf`.
 
 ## Remaining Limitations
 
 - Only schema version 1 is supported.
 - Only `L1.0 Existing Conditions` SVG rendering is implemented.
-- Greenleaf contains placeholder geometry that must be replaced by surveyed/measured data.
+- Greenleaf contains split-file placeholder geometry that must be replaced by surveyed/measured data.
 - Reference records do not require local files to exist yet and do not parse document contents.
 - Split-file loading currently supports `existing_conditions.yaml` and `references.yaml`.
 - Quantity reporting and CSV export cover existing conditions only and do not yet calculate costs.
@@ -117,8 +125,8 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-Split Greenleaf into separate `existing_conditions.yaml` and `references.yaml` files once
-the source format is stable enough to make real survey-data entry less crowded.
+Add a lightweight `landscape inspect` command for looking up one entity by stable ID
+before real Greenleaf data entry grows the project file set.
 
 ## Resume Notes
 

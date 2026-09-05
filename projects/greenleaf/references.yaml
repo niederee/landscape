@@ -1,0 +1,9 @@
+reference_documents:
+  - id: REF_SURVEY_PENDING
+    name: Closing Property Survey
+    document_type: property_survey
+    filename: references/survey/closing_property_survey.pdf
+    notes:
+      - Placeholder record for the real Greenleaf survey document.
+site_photos: []
+

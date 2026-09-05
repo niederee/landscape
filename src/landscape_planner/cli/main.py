@@ -6,6 +6,7 @@ from pathlib import Path
 
 import typer
 from rich.console import Console
+from rich.json import JSON
 from rich.table import Table
 
 from landscape_planner.analysis.validation import count_entities, validate_project
@@ -15,6 +16,7 @@ from landscape_planner.estimating.quantities import (
     summarize_quantities,
     write_quantities_csv,
 )
+from landscape_planner.inspection import entity_to_dict, find_entity
 from landscape_planner.io.yaml_loader import ProjectLoadError, load_project
 from landscape_planner.rendering.svg import render_existing_conditions_svg
 
@@ -151,6 +153,20 @@ def references(project_path: Path) -> None:
             photo.description or "",
         )
     console.print(photos)
+
+
+@app.command()
+def inspect(project_path: Path, entity_id: str) -> None:
+    """Inspect one project entity by stable ID."""
+
+    project = _load_or_exit(project_path)
+    result = find_entity(project, entity_id)
+    if result is None:
+        console.print(f"[red]Entity not found:[/red] {entity_id}")
+        raise typer.Exit(code=1)
+
+    console.print(f"[bold]{result.category}[/bold] {result.entity.id}")
+    console.print(JSON.from_data(entity_to_dict(result.entity)))
 
 
 @app.command()

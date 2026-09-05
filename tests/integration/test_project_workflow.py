@@ -15,6 +15,7 @@ def test_synthetic_project_loads_and_validates():
     assert result.ok
     assert project.project_id == "synthetic"
     assert project.existing_conditions.parcel.area_sqft == 10400
+    assert len(project.existing_conditions.utilities) == 1
 
 
 def test_existing_conditions_svg_is_deterministic(tmp_path):
@@ -30,4 +31,4 @@ def test_existing_conditions_svg_is_deterministic(tmp_path):
     assert "L1.0" in first
     assert "Existing Conditions" in first
     assert "HOUSE001" in first
-
+    assert "UTIL001" in first

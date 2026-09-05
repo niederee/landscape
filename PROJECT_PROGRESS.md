@@ -2,8 +2,7 @@
 
 ## Current Phase
 
-Milestone 0 plus the minimum Milestone 1 foundation from
-`LANDSCAPE_PLANNER_SPEC.md` section 100.
+Milestone 1 existing-conditions modeling.
 
 ## Decisions
 
@@ -12,6 +11,8 @@ Milestone 0 plus the minimum Milestone 1 foundation from
 - Use Pydantic for schema validation and Shapely for deterministic geometry.
 - Generate SVG directly for the first renderer to avoid an unnecessary rendering dependency.
 - Keep the first drawing target to `L1.0 Existing Conditions`.
+- Model utility features with either a point `location` or explicit `geometry`.
+- Support utility clearance as either explicit `clearance_zone` geometry or a deterministic buffer from `clearance_radius_ft`.
 
 ## Checklist
 
@@ -28,6 +29,10 @@ Milestone 0 plus the minimum Milestone 1 foundation from
 - [x] Add initial Greenleaf project folder.
 - [x] Add unit and integration tests.
 - [x] Verify with tests and CLI commands.
+- [x] Add utility/equipment model.
+- [x] Add utility parcel containment validation.
+- [x] Add utility clearance-zone validation and conflict warnings.
+- [x] Render utility symbols and clearance zones on the existing-conditions SVG.
 
 ## Verification
 
@@ -40,24 +45,30 @@ Milestone 0 plus the minimum Milestone 1 foundation from
 - `.venv/bin/uv run landscape render examples/synthetic --sheet existing`: generated `examples/synthetic/generated/svg/L1.0_existing_conditions.svg`.
 - `.venv/bin/uv run landscape validate projects/greenleaf`: passed with starter placeholder geometry.
 - `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
+- Branch `milestone-1-utilities-clearance`: `.venv/bin/uv run pytest`: 9 passed.
+- Branch `milestone-1-utilities-clearance`: `.venv/bin/uv run landscape validate examples/synthetic`: passed with 0 errors and 0 warnings.
+- Branch `milestone-1-utilities-clearance`: `.venv/bin/uv run landscape render examples/synthetic --sheet existing`: generated `examples/synthetic/generated/svg/L1.0_existing_conditions.svg`.
+- Branch `milestone-1-utilities-clearance`: `.venv/bin/uv run landscape validate projects/greenleaf`: passed with starter placeholder geometry.
+- Branch `milestone-1-utilities-clearance`: `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
 
 ## Pull Request Status
 
 - Working branch: `milestone-0-foundation`.
 - Pushed branch: `origin/milestone-0-foundation`.
 - Pull request: `https://github.com/niederee/landscape/pull/1`.
+- Working branch: `milestone-1-utilities-clearance`.
 
 ## Remaining Limitations
 
 - Only schema version 1 is supported.
 - Only `L1.0 Existing Conditions` SVG rendering is implemented.
 - Greenleaf contains placeholder geometry that must be replaced by surveyed/measured data.
-- Utility models, phase dependency validation, concepts, costs, PDF, and DXF remain future milestones.
+- Phase dependency validation, concepts, costs, PDF, and DXF remain future milestones.
 
 ## Next Smallest Useful Step
 
-Add utility/equipment modeling and validation for required clearance zones, then expand
-the Greenleaf source files as real property measurements become available.
+Add quantity reporting for existing conditions: parcel area, structure area, hardscape area,
+linear-feature length, planting-bed area, lawn area, tree count, and utility count.
 
 ## Resume Notes
 

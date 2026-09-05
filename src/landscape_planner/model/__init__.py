@@ -13,6 +13,7 @@ from landscape_planner.model.project import (
     SourceInfo,
     Structure,
     Tree,
+    UtilityFeature,
 )
 
 __all__ = [
@@ -28,5 +29,5 @@ __all__ = [
     "SourceInfo",
     "Structure",
     "Tree",
+    "UtilityFeature",
 ]
-

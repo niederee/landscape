@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from shapely.geometry import Point
+from shapely.geometry.base import BaseGeometry
 
 from landscape_planner.model.geometry import Coordinate, GeometryData, point_from_coordinate
 
@@ -230,6 +231,52 @@ class LawnArea(Entity):
         return self.geometry.to_shape().area
 
 
+class UtilityFeature(Entity):
+    """Utility equipment or service feature with optional clearance geometry."""
+
+    model_config = ConfigDict(extra="forbid", populate_by_name=True)
+
+    utility_type: str = Field(alias="type")
+    location: Coordinate | None = None
+    geometry: GeometryData | None = None
+    clearance_radius_ft: float | None = None
+    clearance_zone: GeometryData | None = None
+    visibility: str | None = None
+    access_requirement: str | None = None
+    status: LifecycleStatus = "existing"
+
+    @model_validator(mode="after")
+    def validate_location_or_geometry(self) -> "UtilityFeature":
+        if self.location is None and self.geometry is None:
+            raise ValueError("UtilityFeature requires either location or geometry.")
+        if self.location is not None and self.geometry is not None:
+            raise ValueError("UtilityFeature must use either location or geometry, not both.")
+        if self.clearance_radius_ft is not None and self.clearance_radius_ft <= 0:
+            raise ValueError("clearance_radius_ft must be positive when provided.")
+        return self
+
+    @property
+    def shape(self) -> BaseGeometry:
+        if self.geometry is not None:
+            return self.geometry.to_shape()
+        return point_from_coordinate(self.location)
+
+    @property
+    def point(self) -> Point | None:
+        shape = self.shape
+        if isinstance(shape, Point):
+            return shape
+        return None
+
+    @property
+    def clearance_shape(self) -> BaseGeometry | None:
+        if self.clearance_zone is not None:
+            return self.clearance_zone.to_shape()
+        if self.clearance_radius_ft is not None:
+            return self.shape.buffer(self.clearance_radius_ft)
+        return None
+
+
 class ExistingConditions(BaseModel):
     """Current site entities before proposed design work begins."""
 
@@ -242,6 +289,7 @@ class ExistingConditions(BaseModel):
     trees: list[Tree] = Field(default_factory=list)
     planting_beds: list[PlantingBed] = Field(default_factory=list)
     lawn: list[LawnArea] = Field(default_factory=list)
+    utilities: list[UtilityFeature] = Field(default_factory=list)
 
 
 class LandscapeProject(BaseModel):
@@ -258,4 +306,3 @@ class LandscapeProject(BaseModel):
     @property
     def project_id(self) -> str:
         return self.project.id
-

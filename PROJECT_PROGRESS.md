@@ -149,7 +149,9 @@ Milestone 1 existing-conditions modeling.
 - Working branch: `milestone-1-quantities-reference-schema`.
 - Pull request: `https://github.com/niederee/landscape/pull/17`.
 - Working branch: `milestone-1-schema-migration-checks`.
-- Pull request: `In progress`.
+- Pull request: `https://github.com/niederee/landscape/pull/18`.
+- Working branch: `milestone-1-schema-migration-checks`.
+- Pull request: `https://github.com/niederee/landscape/pull/18`.
 
 ## Pull Request Status
 

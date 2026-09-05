@@ -1,0 +1,54 @@
+schema_version: 1
+project:
+  id: greenleaf
+  name: Greenleaf Landscape Master Plan
+  location:
+    city: Trophy Club
+    state: TX
+    country: US
+  units:
+    distance: ft
+    area: sqft
+coordinate_system:
+  type: local_cartesian
+  horizontal_units: ft
+  origin_description: southwest_property_corner
+  north_rotation_degrees: 0
+existing_conditions:
+  parcel:
+    id: PARCEL001
+    name: Starter Parcel
+    boundary:
+      type: polygon
+      coordinates:
+        - [0, 0]
+        - [80, 0]
+        - [80, 130]
+        - [0, 130]
+    source:
+      type: manual_estimate
+      confidence: low
+    notes:
+      - Replace starter geometry with surveyed Greenleaf property boundary.
+  structures:
+    - id: HOUSE001
+      name: Starter House Footprint
+      use: house
+      footprint:
+        type: polygon
+        coordinates:
+          - [12, 38]
+          - [67, 38]
+          - [67, 83]
+          - [12, 83]
+      source:
+        type: manual_estimate
+        confidence: low
+      notes:
+        - Replace with measured or surveyed house footprint.
+  hardscape: []
+  linear_features: []
+  trees: []
+  planting_beds: []
+  lawn: []
+

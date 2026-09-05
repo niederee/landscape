@@ -1,0 +1,170 @@
+schema_version: 1
+project:
+  id: synthetic
+  name: Synthetic Residential Test Property
+  location:
+    city: Trophy Club
+    state: TX
+    country: US
+  units:
+    distance: ft
+    area: sqft
+coordinate_system:
+  type: local_cartesian
+  horizontal_units: ft
+  origin_description: southwest_property_corner
+  north_rotation_degrees: 0
+existing_conditions:
+  parcel:
+    id: PARCEL001
+    name: Test Parcel
+    boundary:
+      type: polygon
+      coordinates:
+        - [0, 0]
+        - [80, 0]
+        - [80, 130]
+        - [0, 130]
+    source:
+      type: manual_estimate
+      confidence: medium
+  structures:
+    - id: HOUSE001
+      name: House
+      use: house
+      footprint:
+        type: polygon
+        coordinates:
+          - [12, 38]
+          - [67, 38]
+          - [67, 83]
+          - [12, 83]
+      doors:
+        - id: DOOR_REAR001
+          name: Rear Door
+          location: [42, 83]
+          exterior_direction: north
+          use: primary_backyard_access
+  hardscape:
+    - id: DRIVE001
+      name: Driveway
+      subtype: driveway
+      material: concrete
+      geometry:
+        type: polygon
+        coordinates:
+          - [50, 0]
+          - [74, 0]
+          - [74, 38]
+          - [50, 38]
+    - id: WALK001
+      name: Front Walk
+      subtype: sidewalk
+      material: concrete
+      geometry:
+        type: polygon
+        coordinates:
+          - [38, 0]
+          - [43, 0]
+          - [43, 38]
+          - [38, 38]
+    - id: PATIO001
+      name: Rear Patio
+      subtype: patio
+      material: concrete
+      geometry:
+        type: polygon
+        coordinates:
+          - [28, 83]
+          - [58, 83]
+          - [58, 101]
+          - [28, 101]
+  linear_features:
+    - id: FENCE001
+      name: Rear Fence
+      subtype: fence
+      material: wood
+      geometry:
+        type: linestring
+        coordinates:
+          - [0, 38]
+          - [0, 130]
+          - [80, 130]
+          - [80, 38]
+  trees:
+    - id: TREE001
+      common_name: Live Oak
+      species: Quercus virginiana
+      location: [18, 112]
+      trunk_diameter_in: 12
+      canopy_radius_ft: 13
+      height_ft: 28
+      condition: good
+      disposition: preserve
+    - id: TREE002
+      common_name: Red Oak
+      species: Quercus shumardii
+      location: [64, 112]
+      trunk_diameter_in: 9
+      canopy_radius_ft: 11
+      height_ft: 24
+      condition: good
+      disposition: preserve
+    - id: TREE003
+      common_name: Crape Myrtle
+      species: Lagerstroemia indica
+      location: [18, 20]
+      trunk_diameter_in: 5
+      canopy_radius_ft: 8
+      height_ft: 16
+      condition: fair
+      disposition: evaluate
+  planting_beds:
+    - id: BED001
+      name: Front Foundation Bed
+      light_condition: morning_sun
+      water_requirement: medium
+      mulch: hardwood
+      geometry:
+        type: polygon
+        coordinates:
+          - [12, 30]
+          - [50, 30]
+          - [50, 38]
+          - [12, 38]
+    - id: BED002
+      name: Rear Shade Bed
+      light_condition: part_shade
+      water_requirement: low
+      mulch: hardwood
+      geometry:
+        type: polygon
+        coordinates:
+          - [8, 98]
+          - [27, 98]
+          - [27, 124]
+          - [8, 124]
+  lawn:
+    - id: LAWN001
+      name: Front Lawn
+      species: bermuda
+      sun_condition: full_sun
+      geometry:
+        type: polygon
+        coordinates:
+          - [0, 0]
+          - [38, 0]
+          - [38, 30]
+          - [0, 30]
+    - id: LAWN002
+      name: Rear Lawn
+      species: bermuda
+      sun_condition: part_sun
+      geometry:
+        type: polygon
+        coordinates:
+          - [27, 101]
+          - [72, 101]
+          - [72, 124]
+          - [27, 124]
+

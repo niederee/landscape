@@ -1,0 +1,35 @@
+[project]
+name = "landscape-planner"
+version = "0.1.0"
+description = "Deterministic residential landscape planning from structured project data."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { file = "LICENSE" }
+dependencies = [
+    "pydantic>=2.8",
+    "pyyaml>=6.0",
+    "rich>=13.7",
+    "shapely>=2.0",
+    "typer>=0.12",
+]
+
+[project.scripts]
+landscape = "landscape_planner.cli.main:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+

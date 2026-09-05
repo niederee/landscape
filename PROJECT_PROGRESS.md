@@ -67,6 +67,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Add migration notes for other schema-bearing artifacts (quantities and reference manifests).
 - [x] Add schema-versioned JSON and schema export for quantities.
 - [x] Add schema-versioned JSON and schema export for references.
+- [x] Add schema-version migration checks and parser gates for report, quantity, and reference artifacts.
 
 ## Verification
 
@@ -74,7 +75,7 @@ Milestone 1 existing-conditions modeling.
 - `uv --version`: not globally installed on this machine.
 - `.venv/bin/pip install uv`: installed uv locally in the project virtual environment.
 - `.venv/bin/uv sync --extra dev`: passed.
-- `.venv/bin/uv run pytest`: 6 passed.
+- `.venv/bin/uv run pytest`: 58 passed.
 - `.venv/bin/uv run landscape validate examples/synthetic`: passed with 0 errors and 0 warnings.
 - `.venv/bin/uv run landscape render examples/synthetic --sheet existing`: generated `examples/synthetic/generated/svg/L1.0_existing_conditions.svg`.
 - `.venv/bin/uv run landscape validate projects/greenleaf`: passed with starter placeholder geometry.
@@ -147,6 +148,8 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/16`.
 - Working branch: `milestone-1-quantities-reference-schema`.
 - Pull request: `https://github.com/niederee/landscape/pull/17`.
+- Working branch: `milestone-1-schema-migration-checks`.
+- Pull request: `In progress`.
 
 ## Pull Request Status
 
@@ -199,7 +202,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Add migration checks and policy updates when artifact schema versions evolve.
+- Begin planning next milestone tasks in `LANDSCAPE_PLANNER_SPEC.md`.
 
 ## Resume Notes
 

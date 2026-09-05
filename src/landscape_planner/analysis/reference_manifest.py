@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Mapping
 
 from pydantic import BaseModel, Field
 
@@ -11,6 +12,10 @@ from landscape_planner.model.project import LandscapeProject, SitePhoto
 
 
 REFERENCE_MANIFEST_SCHEMA_VERSION = "1.0.0"
+SUPPORTED_REFERENCE_MANIFEST_SCHEMA_VERSIONS = (REFERENCE_MANIFEST_SCHEMA_VERSION,)
+REFERENCE_MANIFEST_SCHEMA_MIGRATION_NOTES = {
+    "1.0.0": "Initial stable reference manifest artifact schema.",
+}
 DEFAULT_REFERENCES_DIR = Path("generated") / "references"
 DEFAULT_REFERENCES_JSON_PATH = DEFAULT_REFERENCES_DIR / "landscape_references.json"
 DEFAULT_REFERENCES_SCHEMA_PATH = DEFAULT_REFERENCES_DIR / "landscape_references.schema.json"
@@ -45,6 +50,23 @@ class ReferenceManifestPayload(BaseModel):
     project_id: str
     reference_documents: tuple[ReferenceDocumentRow, ...]
     site_photos: tuple[SitePhotoRow, ...]
+
+
+class UnsupportedReferenceManifestSchemaVersion(ValueError):
+    """Raised when a reference manifest declares an unsupported schema version."""
+
+
+def parse_reference_manifest_payload(payload: Mapping[str, object]) -> ReferenceManifestPayload:
+    """Validate a reference manifest payload and enforce supported schema versions."""
+
+    parsed = ReferenceManifestPayload.model_validate(payload)
+    if parsed.schema_version not in SUPPORTED_REFERENCE_MANIFEST_SCHEMA_VERSIONS:
+        raise UnsupportedReferenceManifestSchemaVersion(
+            f"Unsupported reference manifest schema version: {parsed.schema_version}. "
+            f"Supported versions are: {', '.join(SUPPORTED_REFERENCE_MANIFEST_SCHEMA_VERSIONS)}. "
+            "See docs/adr/0003-schema-versioning-for-future-artifacts.md for migration notes."
+        )
+    return parsed
 
 
 def build_reference_manifest(project: LandscapeProject) -> ReferenceManifestPayload:

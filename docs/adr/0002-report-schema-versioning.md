@@ -26,6 +26,7 @@ changes would reduce reproducibility and require risky, silent remediations.
 - Keep `REPORT_SCHEMA_VERSION` in
   `src/landscape_planner/analysis/reporting.py` as the single source of truth.
 - Require schema-version checks in tests for stable payload shape and required fields.
+- Keep parser-level compatibility checks for report payload consumers.
 - On any breaking report-payload change,:
   - increment `REPORT_SCHEMA_VERSION`,
   - update migration notes in this ADR and this section of the project

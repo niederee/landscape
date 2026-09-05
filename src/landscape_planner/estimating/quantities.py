@@ -6,7 +6,7 @@ import csv
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Mapping
 
 from pydantic import BaseModel, Field
 
@@ -14,6 +14,10 @@ from landscape_planner.model.project import LandscapeProject
 
 
 QUANTITY_SCHEMA_VERSION = "1.0.0"
+SUPPORTED_QUANTITY_SCHEMA_VERSIONS = (QUANTITY_SCHEMA_VERSION,)
+QUANTITY_SCHEMA_MIGRATION_NOTES = {
+    "1.0.0": "Initial stable quantities artifact schema.",
+}
 DEFAULT_QUANTITIES_DIR = Path("generated") / "quantities"
 DEFAULT_QUANTITIES_JSON_PATH = DEFAULT_QUANTITIES_DIR / "existing_conditions_quantities.json"
 DEFAULT_QUANTITIES_SCHEMA_PATH = DEFAULT_QUANTITIES_DIR / "existing_conditions_quantities.schema.json"
@@ -56,6 +60,23 @@ class QuantitiesPayload(BaseModel):
     section: str
     items: tuple[QuantityPayloadItem, ...]
     totals: tuple[QuantityPayloadTotal, ...]
+
+
+class UnsupportedQuantitiesSchemaVersion(ValueError):
+    """Raised when a quantity artifact declares an unsupported schema version."""
+
+
+def parse_quantities_payload(payload: Mapping[str, object]) -> QuantitiesPayload:
+    """Validate a quantities payload and enforce supported schema versions."""
+
+    parsed = QuantitiesPayload.model_validate(payload)
+    if parsed.schema_version not in SUPPORTED_QUANTITY_SCHEMA_VERSIONS:
+        raise UnsupportedQuantitiesSchemaVersion(
+            f"Unsupported quantity artifact schema version: {parsed.schema_version}. "
+            f"Supported versions are: {', '.join(SUPPORTED_QUANTITY_SCHEMA_VERSIONS)}. "
+            "See docs/adr/0003-schema-versioning-for-future-artifacts.md for migration notes."
+        )
+    return parsed
 
 
 def existing_condition_quantities(project: LandscapeProject) -> tuple[QuantityItem, ...]:

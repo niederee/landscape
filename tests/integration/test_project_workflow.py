@@ -63,6 +63,34 @@ def test_quantities_cli_writes_csv(tmp_path):
     assert "total,lawn,,,2175,sqft\n" in output.read_text(encoding="utf-8")
 
 
+def test_quantities_cli_exports_json(tmp_path):
+    project_path = tmp_path / "synthetic_quantities_json"
+    shutil.copytree(FIXTURE, project_path)
+
+    result = RUNNER.invoke(app, ["quantities", str(project_path), "--format", "json"])
+
+    assert result.exit_code == 0
+    output = project_path / "generated" / "quantities" / "existing_conditions_quantities.json"
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["project_id"] == "synthetic"
+    assert payload["section"] == "existing_conditions"
+    assert len(payload["items"]) > 0
+
+
+def test_quantities_cli_exports_schema(tmp_path):
+    project_path = tmp_path / "synthetic_quantities_schema"
+    shutil.copytree(FIXTURE, project_path)
+
+    result = RUNNER.invoke(app, ["quantities", str(project_path), "--format", "schema"])
+
+    assert result.exit_code == 0
+    output = project_path / "generated" / "quantities" / "existing_conditions_quantities.schema.json"
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["title"] == "QuantitiesPayload"
+
+
 def test_references_cli_lists_documents_and_photos():
     result = RUNNER.invoke(app, ["references", str(FIXTURE)])
 
@@ -70,6 +98,34 @@ def test_references_cli_lists_documents_and_photos():
     assert "Reference Documents" in result.output
     assert "REF_SURVEY_SYNTHETIC" in result.output
     assert "PHOTO_BACKYARD_001" in result.output
+
+
+def test_references_cli_exports_json(tmp_path):
+    project_path = tmp_path / "synthetic_references_json"
+    shutil.copytree(FIXTURE, project_path)
+
+    result = RUNNER.invoke(app, ["references", str(project_path), "--format", "json"])
+
+    assert result.exit_code == 0
+    output = project_path / "generated" / "references" / "landscape_references.json"
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["project_id"] == "synthetic"
+    assert payload["reference_documents"][0]["id"] == "REF_SURVEY_SYNTHETIC"
+    assert payload["site_photos"][0]["id"] == "PHOTO_BACKYARD_001"
+
+
+def test_references_cli_exports_schema(tmp_path):
+    project_path = tmp_path / "synthetic_references_schema"
+    shutil.copytree(FIXTURE, project_path)
+
+    result = RUNNER.invoke(app, ["references", str(project_path), "--format", "schema"])
+
+    assert result.exit_code == 0
+    output = project_path / "generated" / "references" / "landscape_references.schema.json"
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["title"] == "ReferenceManifestPayload"
 
 
 def test_list_entities_cli_lists_stable_ids():

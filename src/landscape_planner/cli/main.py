@@ -20,10 +20,24 @@ from landscape_planner.analysis.reporting import (
     write_report_json,
     write_report_schema,
 )
+from landscape_planner.analysis.reference_manifest import (
+    DEFAULT_REFERENCES_JSON_PATH,
+    DEFAULT_REFERENCES_SCHEMA_PATH,
+    build_reference_manifest,
+    build_reference_manifest_schema,
+    write_reference_manifest_json,
+    write_reference_manifest_schema,
+)
 from landscape_planner.estimating.quantities import (
     existing_condition_quantities,
+    DEFAULT_QUANTITIES_JSON_PATH,
+    DEFAULT_QUANTITIES_SCHEMA_PATH,
+    build_quantities_payload,
+    build_quantities_schema,
     format_quantity,
     summarize_quantities,
+    write_quantities_json,
+    write_quantities_schema,
     write_quantities_csv,
 )
 from landscape_planner.inspection import entity_inspection_payload, find_entity
@@ -71,9 +85,14 @@ def quantities(
         "table",
         "--format",
         "-f",
-        help="Output format. Supported values: table, csv.",
+        help="Output format. Supported values: table, csv, json, schema.",
     ),
-    output: Path | None = typer.Option(None, "--output", "-o", help="CSV output path."),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="CSV/JSON/Schema output path.",
+    ),
 ) -> None:
     """Report deterministic existing-conditions quantities."""
 
@@ -93,8 +112,23 @@ def quantities(
         written = write_quantities_csv(items, output)
         console.print(f"[green]Generated:[/green] {written}")
         return
+    if output_format == "json":
+        quantity_payload = build_quantities_payload(project)
+        if output is None:
+            base = project_path if project_path.is_dir() else project_path.parent
+            output = base / DEFAULT_QUANTITIES_JSON_PATH
+        written = write_quantities_json(quantity_payload, output)
+        console.print(f"[green]Generated:[/green] {written}")
+        return
+    if output_format == "schema":
+        if output is None:
+            base = project_path if project_path.is_dir() else project_path.parent
+            output = base / DEFAULT_QUANTITIES_SCHEMA_PATH
+        write_quantities_schema(build_quantities_schema(), output)
+        console.print(f"[green]Generated:[/green] {output}")
+        return
     if output_format != "table":
-        console.print("[red]Unsupported quantity format. Use table or csv.[/red]")
+        console.print("[red]Unsupported quantity format. Use table, csv, json, or schema.[/red]")
         raise typer.Exit(code=2)
 
     detail = Table(title="Existing Conditions Quantities")
@@ -123,10 +157,45 @@ def quantities(
 
 
 @app.command()
-def references(project_path: Path) -> None:
+def references(
+    project_path: Path,
+    output_format: str = typer.Option(
+        "table",
+        "--format",
+        "-f",
+        help="Output format. Supported values: table, json, schema.",
+    ),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="JSON/Schema output path.",
+    ),
+) -> None:
     """List project reference documents and site photos."""
 
     project = _load_or_exit(project_path)
+
+    if output_format == "json":
+        payload = build_reference_manifest(project)
+        if output is None:
+            base = project_path if project_path.is_dir() else project_path.parent
+            output = base / DEFAULT_REFERENCES_JSON_PATH
+        written = write_reference_manifest_json(payload, output)
+        console.print(f"[green]Generated:[/green] {written}")
+        return
+
+    if output_format == "schema":
+        if output is None:
+            base = project_path if project_path.is_dir() else project_path.parent
+            output = base / DEFAULT_REFERENCES_SCHEMA_PATH
+        write_reference_manifest_schema(build_reference_manifest_schema(), output)
+        console.print(f"[green]Generated:[/green] {output}")
+        return
+
+    if output_format != "table":
+        console.print("[red]Unsupported references format. Use table, json, or schema.[/red]")
+        raise typer.Exit(code=2)
 
     documents = Table(title="Reference Documents")
     documents.add_column("ID", no_wrap=True)

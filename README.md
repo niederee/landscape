@@ -48,6 +48,10 @@ uv run landscape inspect examples/synthetic TREE001
 uv run landscape inspect examples/synthetic HOUSE001
 uv run landscape quantities examples/synthetic
 uv run landscape quantities examples/synthetic --format csv
+uv run landscape quantities examples/synthetic --format json
+uv run landscape quantities examples/synthetic --format schema
+uv run landscape references examples/synthetic --format json
+uv run landscape references examples/synthetic --format schema
 uv run landscape render examples/synthetic --sheet existing
 ```
 

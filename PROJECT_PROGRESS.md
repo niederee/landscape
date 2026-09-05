@@ -17,6 +17,7 @@ Milestone 1 existing-conditions modeling.
 - Export existing-condition quantities as deterministic CSV for downstream analysis.
 - Track source reference documents and site-photo survey metadata in structured project data.
 - Validate entity `source.reference` values against declared reference document and photo IDs or filenames.
+- Load optional `references.yaml` files for reference documents and site photos while preserving single-file project support.
 
 ## Checklist
 
@@ -44,6 +45,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Add structured site-photo metadata.
 - [x] Add `landscape references`.
 - [x] Validate source references against declared project metadata.
+- [x] Add optional split-file loading for `references.yaml`.
 
 ## Verification
 
@@ -83,6 +85,9 @@ Milestone 1 existing-conditions modeling.
 - Branch `milestone-1-reference-metadata`: `.venv/bin/uv run landscape quantities examples/synthetic --format csv`: generated `examples/synthetic/generated/csv/existing_conditions_quantities.csv`.
 - Branch `milestone-1-reference-metadata`: `.venv/bin/uv run landscape quantities projects/greenleaf --format csv`: generated `projects/greenleaf/generated/csv/existing_conditions_quantities.csv`.
 - Branch `milestone-1-reference-metadata`: `.venv/bin/uv run landscape --help`: listed `references`.
+- Branch `milestone-1-split-references`: `.venv/bin/uv run pytest`: 22 passed.
+- Branch `milestone-1-split-references`: `.venv/bin/uv run landscape validate tests/fixtures/split_references`: passed with 0 errors and 0 warnings.
+- Branch `milestone-1-split-references`: `.venv/bin/uv run landscape references tests/fixtures/split_references`: passed.
 
 ## Pull Request Status
 
@@ -97,6 +102,7 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/4`.
 - Working branch: `milestone-1-reference-metadata`.
 - Pull request: `https://github.com/niederee/landscape/pull/5`.
+- Working branch: `milestone-1-split-references`.
 
 ## Remaining Limitations
 
@@ -104,13 +110,14 @@ Milestone 1 existing-conditions modeling.
 - Only `L1.0 Existing Conditions` SVG rendering is implemented.
 - Greenleaf contains placeholder geometry that must be replaced by surveyed/measured data.
 - Reference records do not require local files to exist yet and do not parse document contents.
+- Split-file loading currently supports `existing_conditions.yaml` and `references.yaml`.
 - Quantity reporting and CSV export cover existing conditions only and do not yet calculate costs.
 - Phase dependency validation, concepts, costs, PDF, and DXF remain future milestones.
 
 ## Next Smallest Useful Step
 
-Split large project files by adding optional loading for `references.yaml` while preserving
-single-file project support.
+Split Greenleaf into separate `existing_conditions.yaml` and `references.yaml` files once
+the source format is stable enough to make real survey-data entry less crowded.
 
 ## Resume Notes
 

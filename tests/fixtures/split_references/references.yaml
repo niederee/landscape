@@ -1,0 +1,14 @@
+reference_documents:
+  - id: REF_SPLIT_SURVEY
+    name: Split Fixture Survey
+    document_type: property_survey
+    filename: references/survey/split_fixture_survey.pdf
+    date: 2026-09-05
+site_photos:
+  - id: PHOTO_SPLIT_001
+    filename: references/photos/split_backyard.jpg
+    camera_location: [10, 20]
+    direction_degrees: 45
+    description: Split fixture photo
+    date: 2026-09-05
+

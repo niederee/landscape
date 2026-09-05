@@ -1,0 +1,17 @@
+schema_version: 1
+project:
+  id: split-references
+  name: Split Reference Fixture
+  location:
+    city: Trophy Club
+    state: TX
+    country: US
+  units:
+    distance: ft
+    area: sqft
+coordinate_system:
+  type: local_cartesian
+  horizontal_units: ft
+  origin_description: southwest_property_corner
+  north_rotation_degrees: 0
+

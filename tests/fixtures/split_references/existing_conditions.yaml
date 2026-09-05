@@ -1,0 +1,22 @@
+parcel:
+  id: PARCEL_SPLIT
+  name: Split Fixture Parcel
+  boundary:
+    type: polygon
+    coordinates:
+      - [0, 0]
+      - [20, 0]
+      - [20, 30]
+      - [0, 30]
+  source:
+    type: survey
+    reference: REF_SPLIT_SURVEY
+    confidence: high
+structures: []
+hardscape: []
+linear_features: []
+trees: []
+planting_beds: []
+lawn: []
+utilities: []
+

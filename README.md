@@ -7,6 +7,9 @@ property data is the source of truth, geometry calculations are deterministic,
 and generated drawings are reproducible outputs.
 Report payload schema migration policy is tracked in
 `docs/adr/0002-report-schema-versioning.md`.
+Longer-lived schema-bearing artifacts (quantities, references manifests, and similar machine-readable outputs)
+are planned under
+`docs/adr/0003-schema-versioning-for-future-artifacts.md`.
 
 ## Development
 

@@ -1,4 +1,6 @@
 from pathlib import Path
+import json
+import shutil
 
 from typer.testing import CliRunner
 
@@ -104,11 +106,28 @@ def test_report_cli_includes_counts_quantities_and_references():
     assert "Reference Summary" in result.output
 
 
-def test_report_cli_exports_json():
-    result = RUNNER.invoke(app, ["report", str(FIXTURE), "--format", "json"])
+def test_report_cli_exports_json(tmp_path):
+    project_path = tmp_path / "synthetic"
+    shutil.copytree(FIXTURE, project_path)
+    result = RUNNER.invoke(app, ["report", str(project_path), "--format", "json"])
 
     assert result.exit_code == 0
-    assert '"project_id": "synthetic"' in result.output
+    output = project_path / "generated" / "report" / "landscape_report.json"
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["project_id"] == "synthetic"
+
+
+def test_report_cli_exports_schema(tmp_path):
+    project_path = tmp_path / "synthetic_schema"
+    shutil.copytree(FIXTURE, project_path)
+    result = RUNNER.invoke(app, ["report", str(project_path), "--format", "schema"])
+
+    assert result.exit_code == 0
+    output = project_path / "generated" / "report" / "landscape_report.schema.json"
+    assert output.exists()
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    assert payload["title"] == "ReportPayload"
 
 
 def test_report_cli_exports_csv(tmp_path):
@@ -121,6 +140,16 @@ def test_report_cli_exports_csv(tmp_path):
     text = output.read_text(encoding="utf-8")
     assert "section,category,unit,count,value,entity_id,message_code,message" in text
     assert "validation" in text
+
+
+def test_report_cli_exports_csv_to_default_path(tmp_path):
+    project_path = tmp_path / "synthetic_csv"
+    shutil.copytree(FIXTURE, project_path)
+    result = RUNNER.invoke(app, ["report", str(project_path), "--format", "csv"])
+
+    assert result.exit_code == 0
+    output = project_path / "generated" / "report" / "landscape_report.csv"
+    assert output.exists()
 
 
 def test_greenleaf_project_loads_from_split_files():

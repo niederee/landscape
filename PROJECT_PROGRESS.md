@@ -45,8 +45,7 @@ Milestone 0 plus the minimum Milestone 1 foundation from
 
 - Working branch: `milestone-0-foundation`.
 - Pushed branch: `origin/milestone-0-foundation`.
-- PR URL: `https://github.com/niederee/landscape/pull/new/milestone-0-foundation`.
-- `gh` is not installed and no `GITHUB_TOKEN` or `GH_TOKEN` is available, so PR creation could not be completed programmatically from this shell.
+- Pull request: `https://github.com/niederee/landscape/pull/1`.
 
 ## Remaining Limitations
 

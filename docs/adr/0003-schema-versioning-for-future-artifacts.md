@@ -27,10 +27,13 @@ For each artifact family:
   - this ADR,
   - `PROJECT_PROGRESS.md`,
   - and relevant command documentation.
+- Add parser-level migration gates that reject unsupported artifact schema versions with a
+  clear migration message.
 - Keep schema-bearing artifacts stable and deterministic:
   - consistent key ordering,
   - deterministic entity ordering,
   - stable float formatting.
+- Keep a discoverable supported-version list and migration note map in the artifact module.
 
 ## Migration Notes
 
@@ -39,3 +42,5 @@ For each artifact family:
   - `generated/quantities/existing_conditions_quantities.schema.json`
   - `generated/references/landscape_references.json`
   - `generated/references/landscape_references.schema.json`
+- `1.0.0` (Stable): strict parser checks are active for report, quantities,
+  and reference manifest artifacts.

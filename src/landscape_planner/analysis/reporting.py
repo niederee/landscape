@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Mapping
 
 from pydantic import BaseModel, Field
 
@@ -14,6 +15,10 @@ from landscape_planner.estimating.quantities import existing_condition_quantitie
 
 
 REPORT_SCHEMA_VERSION = "1.0.0"
+SUPPORTED_REPORT_SCHEMA_VERSIONS = (REPORT_SCHEMA_VERSION,)
+REPORT_SCHEMA_MIGRATION_NOTES = {
+    "1.0.0": "Initial stable report payload schema.",
+}
 DEFAULT_REPORT_DIR = Path("generated") / "report"
 DEFAULT_REPORT_JSON_PATH = DEFAULT_REPORT_DIR / "landscape_report.json"
 DEFAULT_REPORT_CSV_PATH = DEFAULT_REPORT_DIR / "landscape_report.csv"
@@ -58,6 +63,23 @@ class ReportPayload(BaseModel):
     entity_counts: tuple[ReportEntityCount, ...]
     quantity_totals: tuple[ReportQuantityTotal, ...]
     references: ReportReferences
+
+
+class UnsupportedReportSchemaVersion(ValueError):
+    """Raised when a report artifact declares an unsupported schema version."""
+
+
+def parse_report_payload(payload: Mapping[str, object]) -> ReportPayload:
+    """Validate a report payload and enforce supported schema versions."""
+
+    parsed = ReportPayload.model_validate(payload)
+    if parsed.schema_version not in SUPPORTED_REPORT_SCHEMA_VERSIONS:
+        raise UnsupportedReportSchemaVersion(
+            f"Unsupported report schema version: {parsed.schema_version}. "
+            f"Supported versions are: {', '.join(SUPPORTED_REPORT_SCHEMA_VERSIONS)}. "
+            "See docs/adr/0002-report-schema-versioning.md for migration notes."
+        )
+    return parsed
 
 
 def build_report_payload(project: LandscapeProject, result: ValidationResult) -> ReportPayload:

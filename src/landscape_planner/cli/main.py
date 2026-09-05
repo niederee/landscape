@@ -9,6 +9,11 @@ from rich.console import Console
 from rich.table import Table
 
 from landscape_planner.analysis.validation import count_entities, validate_project
+from landscape_planner.estimating.quantities import (
+    existing_condition_quantities,
+    format_quantity,
+    summarize_quantities,
+)
 from landscape_planner.io.yaml_loader import ProjectLoadError, load_project
 from landscape_planner.rendering.svg import render_existing_conditions_svg
 
@@ -43,6 +48,45 @@ def validate(project_path: Path) -> None:
     console.print(f"Errors: {len(result.errors)}  Warnings: {len(result.warnings)}")
     if not result.ok:
         raise typer.Exit(code=1)
+
+
+@app.command()
+def quantities(project_path: Path) -> None:
+    """Report deterministic existing-conditions quantities."""
+
+    project = _load_or_exit(project_path)
+    result = validate_project(project)
+    if not result.ok:
+        console.print("[red]Project has validation errors; fix them before calculating quantities.[/red]")
+        for message in result.errors:
+            console.print(f"[red]ERROR[/red] {message.code}: {message.message}")
+        raise typer.Exit(code=1)
+
+    items = existing_condition_quantities(project)
+
+    detail = Table(title="Existing Conditions Quantities")
+    detail.add_column("Category")
+    detail.add_column("Entity")
+    detail.add_column("Description")
+    detail.add_column("Quantity", justify="right")
+    detail.add_column("Unit")
+    for item in items:
+        detail.add_row(
+            item.category,
+            item.entity_id,
+            item.description,
+            format_quantity(item.quantity),
+            item.unit,
+        )
+    console.print(detail)
+
+    totals = Table(title="Quantity Totals")
+    totals.add_column("Category")
+    totals.add_column("Quantity", justify="right")
+    totals.add_column("Unit")
+    for (category, unit), quantity in summarize_quantities(items).items():
+        totals.add_row(category, format_quantity(quantity), unit)
+    console.print(totals)
 
 
 @app.command()
@@ -83,4 +127,3 @@ def _load_or_exit(project_path: Path):
 
 if __name__ == "__main__":
     app()
-

@@ -32,6 +32,7 @@ Validate and render the synthetic existing-conditions project:
 
 ```bash
 uv run landscape validate examples/synthetic
+uv run landscape quantities examples/synthetic
 uv run landscape render examples/synthetic --sheet existing
 ```
 
@@ -40,4 +41,3 @@ The renderer writes:
 ```text
 examples/synthetic/generated/svg/L1.0_existing_conditions.svg
 ```
-

@@ -1,11 +1,15 @@
 from pathlib import Path
 
+from typer.testing import CliRunner
+
+from landscape_planner.cli.main import app
 from landscape_planner.analysis.validation import validate_project
 from landscape_planner.io.yaml_loader import load_project
 from landscape_planner.rendering.svg import render_existing_conditions_svg
 
 
 FIXTURE = Path("tests/fixtures/synthetic")
+RUNNER = CliRunner()
 
 
 def test_synthetic_project_loads_and_validates():
@@ -32,3 +36,12 @@ def test_existing_conditions_svg_is_deterministic(tmp_path):
     assert "Existing Conditions" in first
     assert "HOUSE001" in first
     assert "UTIL001" in first
+
+
+def test_quantities_cli_reports_synthetic_totals():
+    result = RUNNER.invoke(app, ["quantities", str(FIXTURE)])
+
+    assert result.exit_code == 0
+    assert "Existing Conditions Quantities" in result.output
+    assert "HOUSE001" in result.output
+    assert "1,642" in result.output

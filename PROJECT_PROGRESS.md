@@ -124,8 +124,8 @@ Milestone 1 existing-conditions modeling.
 - Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape validate projects/greenleaf`: passed with 0 errors and 0 warnings.
 - Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
 - Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape inspect projects/greenleaf PARCEL001`: passed.
-- Branch `milestone-1-existing-conditions-report`: `.venv/bin/uv run landscape --help`: includes `report`.
-- Branch `milestone-1-existing-conditions-report`: `.venv/bin/uv run landscape report projects/greenleaf`.
+- Branch `milestone-1-existing-conditions-report`: `.venv/bin/uv run landscape --help` will include `report`.
+- Branch `milestone-1-existing-conditions-report`: `.venv/bin/uv run landscape report projects/greenleaf` is ready to verify once merged.
 
 ## Pull Request Status
 
@@ -151,6 +151,7 @@ Milestone 1 existing-conditions modeling.
 - Working branch: `milestone-1-list-entities`.
 - Pull request: `https://github.com/niederee/landscape/pull/10`.
 - Working branch: `milestone-1-existing-conditions-report`.
+- Pull request: `https://github.com/niederee/landscape/pull/11`.
 
 ## Remaining Limitations
 

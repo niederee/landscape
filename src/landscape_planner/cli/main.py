@@ -50,7 +50,14 @@ console = Console()
 
 
 @app.command()
-def validate(project_path: Path) -> None:
+def validate(
+    project_path: Path,
+    strict: bool = typer.Option(
+        False,
+        "--strict",
+        help="Treat warnings as errors and fail the command.",
+    ),
+) -> None:
     """Validate a landscape project directory or YAML file."""
 
     project = _load_or_exit(project_path)
@@ -74,6 +81,9 @@ def validate(project_path: Path) -> None:
         console.print(f"[{style}]{message.severity}[/{style}] {message.code}{entity}: {message.message}")
 
     console.print(f"Errors: {len(result.errors)}  Warnings: {len(result.warnings)}")
+    if strict and result.warnings:
+        console.print("[bold red]Strict mode: warnings treated as errors.[/bold red]")
+        raise typer.Exit(code=1)
     if not result.ok:
         raise typer.Exit(code=1)
 

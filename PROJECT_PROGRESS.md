@@ -69,6 +69,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Add schema-versioned JSON and schema export for references.
 - [x] Add schema-version migration checks and parser gates for report, quantity, and reference artifacts.
 - [x] Add CLI-aware validation for missing local reference asset files with warning codes.
+- [x] Add `landscape validate --strict` to fail fast on warning messages.
 
 ## Verification
 
@@ -77,6 +78,7 @@ Milestone 1 existing-conditions modeling.
 - `.venv/bin/pip install uv`: installed uv locally in the project virtual environment.
 - `.venv/bin/uv sync --extra dev`: passed.
 - `.venv/bin/uv run pytest`: 60 passed.
+- `.venv/bin/uv run pytest`: 62 passed.
 - `.venv/bin/uv run landscape validate examples/synthetic`: passed with 0 errors and 0 warnings.
 - `.venv/bin/uv run landscape render examples/synthetic --sheet existing`: generated `examples/synthetic/generated/svg/L1.0_existing_conditions.svg`.
 - `.venv/bin/uv run landscape validate projects/greenleaf`: passed with starter placeholder geometry.
@@ -145,6 +147,9 @@ Milestone 1 existing-conditions modeling.
   `projects/greenleaf/generated/report/landscape_report.schema.json`.
 - Branch `milestone-1-report-schema-stability`: `.venv/bin/uv run pytest tests/unit/test_report_schema.py`.
 - Branch `milestone-1-report-schema-migrations`: Migration policy docs for report schema changes.
+- Branch `milestone-1-validate-strict-mode`: `.venv/bin/uv run pytest`: 62 passed.
+- Branch `milestone-1-validate-strict-mode`: `.venv/bin/uv run landscape validate tests/fixtures/synthetic`: passes with warnings and exit code 0.
+- Branch `milestone-1-validate-strict-mode`: `.venv/bin/uv run landscape validate tests/fixtures/synthetic --strict`: exits with code 1.
 - Working branch: `milestone-1-schema-planning`.
 - Pull request: `https://github.com/niederee/landscape/pull/16`.
 - Working branch: `milestone-1-quantities-reference-schema`.
@@ -153,6 +158,8 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/18`.
 - Working branch: `milestone-1-reference-asset-warnings`.
 - Pull request: `https://github.com/niederee/landscape/pull/19`.
+- Working branch: `milestone-1-validate-strict-mode`.
+- Pull request: `https://github.com/niederee/landscape/pull/20`.
 
 
 ## Pull Request Status
@@ -199,7 +206,7 @@ Milestone 1 existing-conditions modeling.
 - Only schema version 1 is supported.
 - Only `L1.0 Existing Conditions` SVG rendering is implemented.
 - Greenleaf contains split-file placeholder geometry that must be replaced by surveyed/measured data.
-- Reference records may omit local files for external workflows; missing references now emit explicit warnings.
+- Missing local reference assets now emit warnings; strict mode fails the command when warnings are present.
 - Split-file loading currently supports `existing_conditions.yaml` and `references.yaml`.
 - Inspection metrics are read-only derived values and are not written back to source YAML.
 - Entity listing uses current schema categories and does not yet include concept/master-plan entities.
@@ -208,7 +215,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Add validation for optional local reference asset existence and decide policy for failed hard requirement vs warning in planning notes.
+- Add CLI docs and examples for `landscape validate --strict`, and decide whether CI should default to strict mode.
 
 ## Resume Notes
 

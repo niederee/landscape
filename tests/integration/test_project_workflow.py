@@ -52,6 +52,33 @@ def test_quantities_cli_reports_synthetic_totals():
     assert "1,642" in result.output
 
 
+def test_validate_cli_with_missing_reference_assets_reports_warnings_and_succeeds(tmp_path):
+    project_path = tmp_path / "synthetic_missing_refs"
+    if project_path.exists():
+        shutil.rmtree(project_path)
+    shutil.copytree(FIXTURE, project_path)
+
+    result = RUNNER.invoke(app, ["validate", str(project_path)])
+
+    assert result.exit_code == 0
+    assert "Validation successful." in result.output
+    assert "Warnings: 2" in result.output
+    assert "REFERENCE_DOCUMENT_NOT_FOUND" in result.output
+    assert "SITE_PHOTO_NOT_FOUND" in result.output
+
+
+def test_validate_cli_strict_mode_fails_on_missing_reference_assets(tmp_path):
+    project_path = tmp_path / "synthetic_missing_refs_strict"
+    if project_path.exists():
+        shutil.rmtree(project_path)
+    shutil.copytree(FIXTURE, project_path)
+
+    result = RUNNER.invoke(app, ["validate", str(project_path), "--strict"])
+
+    assert result.exit_code == 1
+    assert "Strict mode: warnings treated as errors." in result.output
+
+
 def test_quantities_cli_writes_csv(tmp_path):
     output = tmp_path / "existing_conditions_quantities.csv"
 

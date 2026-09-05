@@ -17,6 +17,7 @@ from landscape_planner.estimating.quantities import (
     write_quantities_csv,
 )
 from landscape_planner.inspection import entity_inspection_payload, find_entity
+from landscape_planner.inspection import entity_display_name, iter_inspectable_entities
 from landscape_planner.io.yaml_loader import ProjectLoadError, load_project
 from landscape_planner.rendering.svg import render_existing_conditions_svg
 
@@ -153,6 +154,37 @@ def references(project_path: Path) -> None:
             photo.description or "",
         )
     console.print(photos)
+
+
+@app.command("list-entities")
+def list_entities(
+    project_path: Path,
+    category: str | None = typer.Option(None, "--category", "-c", help="Filter by entity category."),
+) -> None:
+    """List project entities by stable ID."""
+
+    project = _load_or_exit(project_path)
+    entities = tuple(iter_inspectable_entities(project))
+    if category is not None:
+        entities = tuple(entity for entity in entities if entity.category == category)
+
+    table = Table(title="Project Entities")
+    table.add_column("Category")
+    table.add_column("ID", no_wrap=True)
+    table.add_column("Name")
+    table.add_column("Source")
+    for inspected in entities:
+        source = ""
+        if inspected.entity.source is not None and inspected.entity.source.reference is not None:
+            source = inspected.entity.source.reference
+        table.add_row(
+            inspected.category,
+            inspected.entity.id,
+            entity_display_name(inspected),
+            source,
+        )
+    console.print(table)
+    console.print(f"Entities: {len(entities)}")
 
 
 @app.command()

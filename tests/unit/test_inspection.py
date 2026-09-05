@@ -1,6 +1,13 @@
 from pathlib import Path
 
-from landscape_planner.inspection import calculated_metrics, entity_inspection_payload, entity_to_dict, find_entity
+from landscape_planner.inspection import (
+    calculated_metrics,
+    entity_display_name,
+    entity_inspection_payload,
+    entity_to_dict,
+    find_entity,
+    iter_inspectable_entities,
+)
 from landscape_planner.io.yaml_loader import load_project
 
 
@@ -15,6 +22,31 @@ def test_find_entity_returns_category_and_entity():
     assert result is not None
     assert result.category == "tree"
     assert result.entity.id == "TREE001"
+
+
+def test_iter_inspectable_entities_has_deterministic_order():
+    project = load_project(FIXTURE)
+
+    entity_ids = [item.entity.id for item in iter_inspectable_entities(project)]
+
+    assert entity_ids[:5] == [
+        "REF_SURVEY_SYNTHETIC",
+        "PHOTO_BACKYARD_001",
+        "PARCEL001",
+        "HOUSE001",
+        "DOOR_REAR001",
+    ]
+    assert entity_ids[-1] == "UTIL001"
+
+
+def test_entity_display_name_uses_domain_specific_fallbacks():
+    project = load_project(FIXTURE)
+
+    tree = find_entity(project, "TREE001")
+    utility = find_entity(project, "UTIL001")
+
+    assert entity_display_name(tree) == "Live Oak"
+    assert entity_display_name(utility) == "HVAC Condenser"
 
 
 def test_find_entity_supports_nested_doors():

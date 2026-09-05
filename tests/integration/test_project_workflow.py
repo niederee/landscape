@@ -70,6 +70,28 @@ def test_references_cli_lists_documents_and_photos():
     assert "PHOTO_BACKYARD_001" in result.output
 
 
+def test_list_entities_cli_lists_stable_ids():
+    result = RUNNER.invoke(app, ["list-entities", str(FIXTURE)])
+
+    assert result.exit_code == 0
+    assert "Project Entities" in result.output
+    assert "PARCEL001" in result.output
+    assert "TREE001" in result.output
+    assert "UTIL001" in result.output
+    assert "Entities: 17" in result.output
+
+
+def test_list_entities_cli_filters_by_category():
+    result = RUNNER.invoke(app, ["list-entities", str(FIXTURE), "--category", "tree"])
+
+    assert result.exit_code == 0
+    assert "TREE001" in result.output
+    assert "TREE002" in result.output
+    assert "TREE003" in result.output
+    assert "HOUSE001" not in result.output
+    assert "Entities: 3" in result.output
+
+
 def test_greenleaf_project_loads_from_split_files():
     project = load_project(GREENLEAF)
     result = validate_project(project)

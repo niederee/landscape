@@ -17,6 +17,7 @@ from landscape_planner.model.project import (
     LinearFeature,
     Parcel,
     PlantingBed,
+    ReferenceDocument,
     SitePhoto,
     Structure,
     Tree,
@@ -67,6 +68,29 @@ def iter_inspectable_entities(project: LandscapeProject) -> Iterable[InspectedEn
         yield InspectedEntity("lawn", lawn)
     for utility in sorted(conditions.utilities, key=lambda item: item.id):
         yield InspectedEntity("utility", utility)
+
+
+def entity_display_name(inspected: InspectedEntity) -> str:
+    """Return a concise display name for an inspected entity."""
+
+    entity = inspected.entity
+    if entity.name:
+        return entity.name
+    if isinstance(entity, ReferenceDocument):
+        return entity.filename
+    if isinstance(entity, SitePhoto):
+        return entity.description or entity.filename
+    if isinstance(entity, Structure):
+        return entity.use
+    if isinstance(entity, HardscapeArea):
+        return entity.subtype
+    if isinstance(entity, LinearFeature):
+        return entity.subtype
+    if isinstance(entity, Tree):
+        return entity.common_name or entity.species or ""
+    if isinstance(entity, UtilityFeature):
+        return entity.utility_type
+    return ""
 
 
 def entity_to_dict(entity: BaseModel) -> dict:

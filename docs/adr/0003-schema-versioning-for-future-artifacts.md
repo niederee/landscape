@@ -34,6 +34,8 @@ For each artifact family:
 
 ## Migration Notes
 
-- `1.0.0` (Planned): initial schema plan for:
-  - machine-readable quantities outputs,
-  - machine-readable reference manifests.
+- `1.0.0` (Implemented): versioned machine-readable outputs:
+  - `generated/quantities/existing_conditions_quantities.json`
+  - `generated/quantities/existing_conditions_quantities.schema.json`
+  - `generated/references/landscape_references.json`
+  - `generated/references/landscape_references.schema.json`

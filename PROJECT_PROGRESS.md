@@ -65,6 +65,8 @@ Milestone 1 existing-conditions modeling.
 - [x] Add schema-version compatibility checks for report payloads.
 - [x] Add migration notes for breaking report schema changes.
 - [x] Add migration notes for other schema-bearing artifacts (quantities and reference manifests).
+- [x] Add schema-versioned JSON and schema export for quantities.
+- [x] Add schema-versioned JSON and schema export for references.
 
 ## Verification
 
@@ -143,6 +145,8 @@ Milestone 1 existing-conditions modeling.
 - Branch `milestone-1-report-schema-migrations`: Migration policy docs for report schema changes.
 - Working branch: `milestone-1-schema-planning`.
 - Pull request: `https://github.com/niederee/landscape/pull/16`.
+- Working branch: `milestone-1-quantities-reference-schema`.
+- Pull request: `https://github.com/niederee/landscape/pull/17`.
 
 ## Pull Request Status
 
@@ -178,11 +182,12 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/15`.
 - Working branch: `milestone-1-schema-planning`.
 - Pull request: `https://github.com/niederee/landscape/pull/16`.
+- Working branch: `milestone-1-quantities-reference-schema`.
+- Pull request: `https://github.com/niederee/landscape/pull/17`.
 
 ## Remaining Limitations
 
 - Only schema version 1 is supported.
-- Quantity and reference manifest machine-readable schema versions are not implemented yet.
 - Only `L1.0 Existing Conditions` SVG rendering is implemented.
 - Greenleaf contains split-file placeholder geometry that must be replaced by surveyed/measured data.
 - Reference records do not require local files to exist yet and do not parse document contents.
@@ -194,7 +199,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Implement machine-readable schema versioning for quantities and reference manifests.
+- Add migration checks and policy updates when artifact schema versions evolve.
 
 ## Resume Notes
 

@@ -3,11 +3,20 @@
 from __future__ import annotations
 
 import csv
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
+from pydantic import BaseModel, Field
+
 from landscape_planner.model.project import LandscapeProject
+
+
+QUANTITY_SCHEMA_VERSION = "1.0.0"
+DEFAULT_QUANTITIES_DIR = Path("generated") / "quantities"
+DEFAULT_QUANTITIES_JSON_PATH = DEFAULT_QUANTITIES_DIR / "existing_conditions_quantities.json"
+DEFAULT_QUANTITIES_SCHEMA_PATH = DEFAULT_QUANTITIES_DIR / "existing_conditions_quantities.schema.json"
 
 
 @dataclass(frozen=True)
@@ -19,6 +28,34 @@ class QuantityItem:
     description: str
     quantity: float
     unit: str
+
+
+class QuantityPayloadItem(BaseModel):
+    """One detail row in the versioned quantity artifact."""
+
+    category: str
+    entity_id: str
+    description: str
+    quantity: float
+    unit: str
+
+
+class QuantityPayloadTotal(BaseModel):
+    """Summarized quantity group for a category and unit."""
+
+    category: str
+    unit: str
+    quantity: float
+
+
+class QuantitiesPayload(BaseModel):
+    """Machine-readable artifact schema for deterministic quantity exports."""
+
+    schema_version: str = Field(default=QUANTITY_SCHEMA_VERSION)
+    project_id: str
+    section: str
+    items: tuple[QuantityPayloadItem, ...]
+    totals: tuple[QuantityPayloadTotal, ...]
 
 
 def existing_condition_quantities(project: LandscapeProject) -> tuple[QuantityItem, ...]:
@@ -88,6 +125,54 @@ def existing_condition_quantities(project: LandscapeProject) -> tuple[QuantityIt
     items.append(QuantityItem("tree", "TREES", "Existing trees", len(conditions.trees), "each"))
     items.append(QuantityItem("utility", "UTILITIES", "Utilities", len(conditions.utilities), "each"))
     return tuple(items)
+
+
+def build_quantities_payload(project: LandscapeProject) -> QuantitiesPayload:
+    """Build a deterministic, versioned quantities payload for machine export."""
+
+    items = existing_condition_quantities(project)
+    return QuantitiesPayload(
+        project_id=project.project_id,
+        section="existing_conditions",
+        items=tuple(
+            QuantityPayloadItem(
+                category=item.category,
+                entity_id=item.entity_id,
+                description=item.description,
+                quantity=item.quantity,
+                unit=item.unit,
+            )
+            for item in items
+        ),
+        totals=tuple(
+            QuantityPayloadTotal(category=category, unit=unit, quantity=quantity)
+            for (category, unit), quantity in summarize_quantities(items).items()
+        ),
+    )
+
+
+def build_quantities_schema() -> dict:
+    """Build JSON schema for quantities artifact payloads."""
+
+    return QuantitiesPayload.model_json_schema()
+
+
+def write_quantities_json(payload: QuantitiesPayload, output_path: str | Path) -> Path:
+    """Write deterministic quantity JSON with stable ordering and schema version."""
+
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(payload.model_dump_json(indent=2, by_alias=False) + "\n", encoding="utf-8")
+    return output
+
+
+def write_quantities_schema(schema: dict, output_path: str | Path) -> Path:
+    """Write generated JSON schema for downstream tooling."""
+
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(schema, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return output
 
 
 def summarize_quantities(items: Iterable[QuantityItem]) -> dict[tuple[str, str], float]:

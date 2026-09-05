@@ -167,4 +167,11 @@ existing_conditions:
           - [72, 101]
           - [72, 124]
           - [27, 124]
-
+  utilities:
+    - id: UTIL001
+      name: HVAC Condenser
+      type: hvac
+      location: [76, 50]
+      clearance_radius_ft: 3
+      visibility: screened_from_patio
+      access_requirement: maintain service access

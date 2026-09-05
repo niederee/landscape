@@ -1,5 +1,5 @@
 from landscape_planner.model.geometry import GeometryData
-from landscape_planner.model.project import HardscapeArea, LawnArea, Tree
+from landscape_planner.model.project import HardscapeArea, LawnArea, Tree, UtilityFeature
 
 
 def test_polygon_area_is_calculated_from_geometry():
@@ -43,3 +43,10 @@ def test_tree_location_exposes_point_geometry():
     assert tree.point.x == 5
     assert tree.point.y == 7
 
+
+def test_utility_clearance_can_be_derived_from_location_radius():
+    utility = UtilityFeature(id="UTIL001", name="HVAC", type="hvac", location=(10, 10), clearance_radius_ft=3)
+
+    assert utility.utility_type == "hvac"
+    assert utility.point.x == 10
+    assert round(utility.clearance_shape.area, 1) == 28.2

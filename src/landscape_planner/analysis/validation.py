@@ -94,6 +94,30 @@ def validate_project(project: LandscapeProject) -> ValidationResult:
                 )
             )
 
+    for utility in conditions.utilities:
+        shape = utility.shape
+        if not shape.is_valid:
+            messages.append(
+                ValidationMessage(
+                    "ERROR",
+                    "INVALID_UTILITY_GEOMETRY",
+                    f"{utility.id} utility geometry is invalid: {explain_validity(shape)}.",
+                    utility.id,
+                )
+            )
+        if not parcel_shape.covers(shape):
+            messages.append(
+                ValidationMessage(
+                    "ERROR",
+                    "UTILITY_OUTSIDE_PARCEL",
+                    f"{utility.id} utility geometry is outside the parcel boundary.",
+                    utility.id,
+                )
+            )
+        clearance = utility.clearance_shape
+        if clearance is not None:
+            messages.extend(_validate_utility_clearance(project, utility.id, clearance))
+
     for tree in conditions.trees:
         if not parcel_shape.covers(tree.point):
             messages.append(
@@ -142,6 +166,7 @@ def count_entities(project: LandscapeProject) -> dict[str, int]:
         "Trees": len(conditions.trees),
         "Planting beds": len(conditions.planting_beds),
         "Lawn areas": len(conditions.lawn),
+        "Utilities": len(conditions.utilities),
     }
 
 
@@ -168,6 +193,7 @@ def _iter_entities(project: LandscapeProject) -> Iterable[Entity]:
     yield from conditions.trees
     yield from conditions.planting_beds
     yield from conditions.lawn
+    yield from conditions.utilities
 
 
 def _validate_polygon(label: str, entity_id: str, shape: BaseGeometry) -> Iterable[ValidationMessage]:
@@ -192,3 +218,42 @@ def _validate_polygon(label: str, entity_id: str, shape: BaseGeometry) -> Iterab
             f"{entity_id} {label} polygon has no positive area.",
             entity_id,
         )
+
+
+def _validate_utility_clearance(
+    project: LandscapeProject,
+    utility_id: str,
+    clearance: BaseGeometry,
+) -> Iterable[ValidationMessage]:
+    conditions = project.existing_conditions
+    parcel_shape = conditions.parcel.boundary.to_shape()
+    if not clearance.is_valid:
+        yield ValidationMessage(
+            "ERROR",
+            "INVALID_UTILITY_CLEARANCE",
+            f"{utility_id} utility clearance zone is invalid: {explain_validity(clearance)}.",
+            utility_id,
+        )
+    if not parcel_shape.covers(clearance):
+        yield ValidationMessage(
+            "WARNING",
+            "UTILITY_CLEARANCE_OUTSIDE_PARCEL",
+            f"{utility_id} utility clearance zone extends outside the parcel boundary.",
+            utility_id,
+        )
+
+    clearance_targets = [
+        *[(item.id, "structure", item.footprint.to_shape()) for item in conditions.structures],
+        *[(item.id, "hardscape", item.geometry.to_shape()) for item in conditions.hardscape],
+        *[(item.id, "planting bed", item.geometry.to_shape()) for item in conditions.planting_beds],
+        *[(item.id, "lawn", item.geometry.to_shape()) for item in conditions.lawn],
+    ]
+    for target_id, label, target_shape in sorted(clearance_targets, key=lambda item: item[0]):
+        overlap_area = clearance.intersection(target_shape).area
+        if overlap_area > 0.001:
+            yield ValidationMessage(
+                "WARNING",
+                "UTILITY_CLEARANCE_CONFLICT",
+                f"{utility_id} clearance zone overlaps {label} {target_id} by {overlap_area:.2f} sqft.",
+                utility_id,
+            )

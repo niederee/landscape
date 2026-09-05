@@ -91,6 +91,26 @@ def existing_conditions_svg(project: LandscapeProject) -> str:
         elements.append(_label(Point(tree.point.x, tree.point.y + tree.canopy_radius_ft), xy, label, "label tiny"))
     elements.append("</g>")
 
+    elements.append('<g id="45_existing_utilities">')
+    for utility in sorted(conditions.utilities, key=lambda item: item.id):
+        clearance = utility.clearance_shape
+        if clearance is not None and isinstance(clearance, Polygon):
+            elements.append(_path(clearance, xy, "utility-clearance", f"{utility.id}_CLEARANCE"))
+        shape = utility.shape
+        if isinstance(shape, Point):
+            elements.append(_utility_symbol(shape, xy, utility.id))
+            label_point = Point(shape.x, shape.y + 3)
+        elif isinstance(shape, LineString):
+            elements.append(_line(shape, xy, "utility-line", utility.id))
+            label_point = shape.centroid
+        elif isinstance(shape, Polygon):
+            elements.append(_path(shape, xy, "utility-area", utility.id))
+            label_point = shape.centroid
+        else:
+            continue
+        elements.append(_label(label_point, xy, utility.name or utility.utility_type, "label tiny"))
+    elements.append("</g>")
+
     elements.extend(
         [
             '<g id="80_annotations">',
@@ -122,6 +142,11 @@ def _svg_header() -> str:
         ".planting-bed{fill:#d7c8a6;stroke:#7d6d4c;stroke-width:1.4}"
         ".tree-canopy{fill:#bfd1ad;stroke:#40603c;stroke-width:1.4}"
         ".tree-trunk{fill:#735b3c;stroke:#40311f;stroke-width:0.8}"
+        ".utility-clearance{fill:#f4ecd2;fill-opacity:.35;stroke:#9a7b22;stroke-width:1.2;stroke-dasharray:6 4}"
+        ".utility-area{fill:#f0d9b5;stroke:#6f5620;stroke-width:1.5}"
+        ".utility-line{fill:none;stroke:#6f5620;stroke-width:1.5;stroke-dasharray:4 4}"
+        ".utility-symbol{fill:#fffefa;stroke:#6f5620;stroke-width:1.8}"
+        ".utility-symbol-mark{stroke:#6f5620;stroke-width:1.8}"
         ".label{font-family:Arial,sans-serif;font-size:18px;fill:#1f1f1f;text-anchor:middle;"
         "paint-order:stroke;stroke:#fffefa;stroke-width:4px;stroke-linejoin:round}"
         ".small{font-size:15px}.tiny{font-size:13px}.property-label{font-weight:bold}"
@@ -158,6 +183,17 @@ def _point(pair: Iterable[float], xy) -> str:
 def _label(point: Point, xy, text: str, class_name: str) -> str:
     x, y = xy(point.x, point.y)
     return f'<text class="{class_name}" x="{_fmt(x)}" y="{_fmt(y)}">{escape(text)}</text>'
+
+
+def _utility_symbol(point: Point, xy, entity_id: str) -> str:
+    x, y = xy(point.x, point.y)
+    return (
+        f'<g class="utility" id="{escape(entity_id)}" transform="translate({_fmt(x)} {_fmt(y)})">'
+        '<circle class="utility-symbol" cx="0" cy="0" r="8" />'
+        '<line class="utility-symbol-mark" x1="-4" y1="-4" x2="4" y2="4" />'
+        '<line class="utility-symbol-mark" x1="4" y1="-4" x2="-4" y2="4" />'
+        "</g>"
+    )
 
 
 def _north_arrow(x: float, y: float) -> str:

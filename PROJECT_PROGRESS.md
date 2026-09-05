@@ -2,9 +2,33 @@
 
 ## Current Phase
 
-H1 portable existing-conditions review, alongside real-site capture.
+H2 authored alternatives and H3 cumulative phase review, alongside real-site capture.
 
-## Current Review and Implementation (September 5, 2026)
+## Alternatives and Phases Implementation (September 5, 2026)
+
+- Baseline: merged PR #22, `1488aa22b72d9518dc5982253e19a255de9fba1e`.
+  Its required Chromium CI passed in Actions run `33983772885`.
+- Added separate schema-1 `planning.yaml` models and immutable add/update/remove/
+  preserve operations. Invalid references, identity conflicts, invalid resolved
+  geometry and preserved-entity changes fail before export.
+- Added `landscape compare` and `landscape phases`: one offline HTML file with
+  baseline-aligned snapshots, side-by-side review and core quantity deltas.
+- Phases use stable dependency ordering and independent cumulative snapshots;
+  unknown/cyclic dependencies fail, preserved entities stay protected, and
+  install-then-change/remove produces rework warnings. Final phase content must
+  match `selected_concept` when supplied, comparing entity IDs rather than list order.
+- Itemized USD allowances require explicit sourced low/high rates. Unpriced
+  items remain unknown; subtotals do not imply a complete construction budget.
+- Added two intentionally different synthetic alternatives and two phases.
+  No real-property geometry, design preference or estimate was fabricated.
+- Added site capture and authoring guides; source and planning inputs are
+  protected from export overwrite, including hardlinks/symlinks.
+- Local integration: `.venv/bin/python -m pytest -q` returned **145 passed,
+  4 skipped** (all four browser tests; Chromium download timed out).
+  Both synthetic comparison and phase HTML exports succeeded; `git diff --check`
+  passed. New browser checks require Chromium in CI; PR result remains pending.
+
+## Historical H1 Implementation (September 5, 2026)
 
 - Audited freshly cloned `main` at `7bd72cd63ac23575ab5d92985fce35ad369a89e8`;
   baseline regression suite: **62 passed** on Python 3.13.3.
@@ -251,29 +275,29 @@ they are not a list of commands rerun in this review.
 
 ## Remaining Limitations
 
-- Only schema version 1 is supported.
-- Only `L1.0 Existing Conditions` SVG and standalone HTML rendering are implemented.
-- HTML omits doors, easements, setbacks and rights-of-way from the drawing and
-  explicitly identifies these omissions. Label collision layout and dimensioned
-  construction sheets remain future work.
-- Greenleaf contains split-file placeholder geometry that must be replaced by surveyed/measured data.
-- Missing local reference assets now emit warnings; strict mode fails the command when warnings are present.
-- Split-file loading currently supports `existing_conditions.yaml` and `references.yaml`.
-- Inspection metrics are read-only derived values and are not written back to source YAML.
-- Entity listing uses current schema categories and does not yet include concept/master-plan entities.
-- Quantity reporting and CSV export cover existing conditions only and do not yet calculate costs.
-- Phase dependency validation, concepts, costs, PDF, and DXF remain future milestones.
+- Greenleaf still contains placeholder geometry. The actual survey, field
+  observations and homeowner program are needed for a meaningful real-site design.
+- Doors, easements, setbacks and rights-of-way remain omitted from drawings.
+- No dimensioned construction sheets, planting schedule, PDF/DXF exporter,
+  seasonal/environmental simulation, or portable feedback import is implemented.
+- Concepts operate on existing collection types and retain one parcel/frame;
+  nested fields are replaced as a whole. Phase dependencies order a single
+  cumulative timeline, not alternative schedules.
+- Cost quantities and source strings are authored; the software does not verify
+  quotes, derive demolition takeoffs, or certify estimate completeness.
+- Browser coverage is Chromium-only when run; other browsers remain unverified.
 
-## Next Smallest Useful Step
+## Next Useful Steps
 
-- Complete the browser/visual H1 gates, then replace Greenleaf placeholders using
-  the owner's survey and field observations. See the ordered capture checklist
-  in `docs/PROJECT_DIRECTION_REVIEW.md`.
-- After site capture, implement a small immutable-baseline concept resolver and
-  two authored alternatives that answer one actual homeowner design question.
+1. Capture the owner's survey and observed site features using
+   `docs/SITE_CAPTURE_GUIDE.md`; keep identifying source files outside this public repo.
+2. Author real alternatives around agreed uses, maintenance and budget priorities,
+   then choose a concept and obtain scoped estimates for its phases.
+3. Add dimensioned sheets and a planting schedule for the selected scope; portable
+   review feedback remains a separate optional H4 milestone.
 
 ## Resume Notes
 
-Read the current section, `docs/PROJECT_DIRECTION_REVIEW.md`, and the two specs.
-Use the active acceptance gaps and next useful outcome, not old branch logs, to
-choose work. Record executed evidence and unverified limitations separately.
+Read this current section and `docs/PLANNING_WORKFLOW.md`. The original H1 logs
+are historical; publication-blocked statements there no longer describe access.
+Keep software test results separate from physical-property verification.

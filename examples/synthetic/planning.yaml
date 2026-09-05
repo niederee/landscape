@@ -1,0 +1,89 @@
+# Synthetic design demonstration only; these are not Greenleaf measurements or quotes.
+schema_version: 1
+selected_concept: gathering
+concepts:
+  - id: gathering
+    name: Gathering space — larger patio
+    description: Synthetic alternative prioritizing a larger gathering area with less lawn.
+    operations:
+      - action: preserve
+        category: trees
+        entity_id: TREE001
+      - action: update
+        category: hardscape
+        entity_id: PATIO001
+        data:
+          status: proposed
+          geometry:
+            type: polygon
+            coordinates: [[28, 83], [58, 83], [58, 109], [28, 109]]
+      - action: update
+        category: lawn
+        entity_id: LAWN002
+        data:
+          status: proposed
+          geometry:
+            type: polygon
+            coordinates: [[27, 109], [72, 109], [72, 124], [27, 124]]
+  - id: garden
+    name: Garden space — retain patio
+    description: Synthetic alternative retains the patio and trades lawn for a planting bed.
+    operations:
+      - action: preserve
+        category: hardscape
+        entity_id: PATIO001
+      - action: update
+        category: lawn
+        entity_id: LAWN002
+        data:
+          status: proposed
+          geometry:
+            type: polygon
+            coordinates: [[27, 101], [56, 101], [56, 124], [27, 124]]
+      - action: add
+        category: planting_beds
+        entity_id: BED003
+        data:
+          name: Demonstration garden bed
+          status: proposed
+          source: {type: manual_estimate, confidence: low}
+          geometry:
+            type: polygon
+            coordinates: [[56, 101], [72, 101], [72, 124], [56, 124]]
+phases:
+  - id: prepare
+    name: Phase 1 — prepare lawn area
+    operations:
+      - action: preserve
+        category: trees
+        entity_id: TREE001
+      - action: update
+        category: lawn
+        entity_id: LAWN002
+        data:
+          status: proposed
+          geometry:
+            type: polygon
+            coordinates: [[27, 109], [72, 109], [72, 124], [27, 124]]
+    cost_items:
+      - id: preparation
+        name: Lawn preparation — price unknown
+        quantity: 360
+        unit: sqft
+  - id: patio
+    name: Phase 2 — expand patio
+    depends_on: [prepare]
+    operations:
+      - action: update
+        category: hardscape
+        entity_id: PATIO001
+        data:
+          status: proposed
+          geometry:
+            type: polygon
+            coordinates: [[28, 83], [58, 83], [58, 109], [28, 109]]
+    cost_items:
+      - id: patio_expansion
+        name: Patio expansion — price unknown
+        quantity: 240
+        unit: sqft

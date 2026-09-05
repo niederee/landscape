@@ -23,7 +23,9 @@ jobs:
       - run: uv run playwright install --with-deps chromium
       - run: uv run pytest -q
       - run: uv run landscape render examples/synthetic --format html
+      - run: uv run landscape compare examples/synthetic
+      - run: uv run landscape phases examples/synthetic
       - uses: actions/upload-artifact@v4
         with:
           name: synthetic-landscape-review
-          path: examples/synthetic/generated/html/L1.0_existing_conditions.html
+          path: examples/synthetic/generated/html/*.html

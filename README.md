@@ -123,3 +123,24 @@ projects/greenleaf/project.yaml
 projects/greenleaf/references.yaml
 projects/greenleaf/existing_conditions.yaml
 ```
+
+## Alternatives and phased work
+
+Keep baseline measurements in the existing project and author design changes in
+an optional `planning.yaml` sidecar. Generate portable review files:
+
+```bash
+uv run landscape compare examples/synthetic
+uv run landscape phases examples/synthetic
+```
+
+The synthetic demonstration compares a larger patio against a garden alternative;
+its two cumulative phases reach the selected patio design. Costs remain explicitly
+unknown until sourced unit-rate ranges are supplied. These are software fixtures,
+not designs or quotes for Greenleaf.
+
+The review supports single or side-by-side snapshots, synchronized navigation,
+entity inspection, Python-calculated quantity differences, dependencies and cost
+allowances. `--planning`, `--output` and `--profile share|private` are supported.
+See [Planning workflow](docs/PLANNING_WORKFLOW.md) for authoring semantics and
+[Site capture guide](docs/SITE_CAPTURE_GUIDE.md) for the real-property inputs.

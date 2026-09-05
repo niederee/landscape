@@ -25,6 +25,10 @@ def load_project(project_path: str | Path) -> LandscapeProject:
         if not project_yaml.exists():
             raise ProjectLoadError(f"Project file not found: {project_yaml}")
         raw = _read_yaml(project_yaml)
+        references_yaml = path / "references.yaml"
+        if references_yaml.exists():
+            references = _read_yaml(references_yaml)
+            _merge_references(raw, references)
         existing_yaml = path / "existing_conditions.yaml"
         if existing_yaml.exists():
             raw["existing_conditions"] = _read_yaml(existing_yaml)
@@ -38,3 +42,14 @@ def _read_yaml(path: Path) -> dict[str, Any]:
         raise ProjectLoadError(f"YAML document must be a mapping: {path}")
     return data
 
+
+def _merge_references(project_data: dict[str, Any], references_data: dict[str, Any]) -> None:
+    allowed_keys = {"reference_documents", "site_photos"}
+    unexpected = sorted(set(references_data) - allowed_keys)
+    if unexpected:
+        keys = ", ".join(unexpected)
+        raise ProjectLoadError(f"references.yaml contains unsupported top-level keys: {keys}")
+
+    for key in sorted(allowed_keys):
+        if key in references_data:
+            project_data[key] = references_data[key]

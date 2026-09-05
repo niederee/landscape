@@ -43,3 +43,20 @@ The renderer writes:
 ```text
 examples/synthetic/generated/svg/L1.0_existing_conditions.svg
 ```
+
+## Project Files
+
+A project can keep all schema data in `project.yaml`, or split bulky sections
+into adjacent files. Currently supported split files:
+
+```text
+existing_conditions.yaml
+references.yaml
+```
+
+`references.yaml` may contain:
+
+```yaml
+reference_documents: []
+site_photos: []
+```

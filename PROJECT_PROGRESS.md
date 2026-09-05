@@ -68,6 +68,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Add schema-versioned JSON and schema export for quantities.
 - [x] Add schema-versioned JSON and schema export for references.
 - [x] Add schema-version migration checks and parser gates for report, quantity, and reference artifacts.
+- [x] Add CLI-aware validation for missing local reference asset files with warning codes.
 
 ## Verification
 
@@ -75,7 +76,7 @@ Milestone 1 existing-conditions modeling.
 - `uv --version`: not globally installed on this machine.
 - `.venv/bin/pip install uv`: installed uv locally in the project virtual environment.
 - `.venv/bin/uv sync --extra dev`: passed.
-- `.venv/bin/uv run pytest`: 58 passed.
+- `.venv/bin/uv run pytest`: 60 passed.
 - `.venv/bin/uv run landscape validate examples/synthetic`: passed with 0 errors and 0 warnings.
 - `.venv/bin/uv run landscape render examples/synthetic --sheet existing`: generated `examples/synthetic/generated/svg/L1.0_existing_conditions.svg`.
 - `.venv/bin/uv run landscape validate projects/greenleaf`: passed with starter placeholder geometry.
@@ -150,8 +151,7 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/17`.
 - Working branch: `milestone-1-schema-migration-checks`.
 - Pull request: `https://github.com/niederee/landscape/pull/18`.
-- Working branch: `milestone-1-schema-migration-checks`.
-- Pull request: `https://github.com/niederee/landscape/pull/18`.
+
 
 ## Pull Request Status
 
@@ -195,7 +195,7 @@ Milestone 1 existing-conditions modeling.
 - Only schema version 1 is supported.
 - Only `L1.0 Existing Conditions` SVG rendering is implemented.
 - Greenleaf contains split-file placeholder geometry that must be replaced by surveyed/measured data.
-- Reference records do not require local files to exist yet and do not parse document contents.
+- Reference records may omit local files for external workflows; missing references now emit explicit warnings.
 - Split-file loading currently supports `existing_conditions.yaml` and `references.yaml`.
 - Inspection metrics are read-only derived values and are not written back to source YAML.
 - Entity listing uses current schema categories and does not yet include concept/master-plan entities.
@@ -204,7 +204,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Begin planning next milestone tasks in `LANDSCAPE_PLANNER_SPEC.md`.
+- Add validation for optional local reference asset existence and decide policy for failed hard requirement vs warning in planning notes.
 
 ## Resume Notes
 

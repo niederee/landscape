@@ -54,7 +54,7 @@ def validate(project_path: Path) -> None:
     """Validate a landscape project directory or YAML file."""
 
     project = _load_or_exit(project_path)
-    result = validate_project(project)
+    result = validate_project(project, project_root=project_path)
 
     if result.ok:
         console.print("[bold green]Validation successful.[/bold green]")
@@ -97,7 +97,7 @@ def quantities(
     """Report deterministic existing-conditions quantities."""
 
     project = _load_or_exit(project_path)
-    result = validate_project(project)
+    result = validate_project(project, project_root=project_path)
     if not result.ok:
         console.print("[red]Project has validation errors; fix them before calculating quantities.[/red]")
         for message in result.errors:
@@ -290,7 +290,7 @@ def report(
         return
 
     if output_format == "csv":
-        result = validate_project(project)
+        result = validate_project(project, project_root=project_path)
         report_payload = build_report_payload(project, result)
         if output is None:
             output = base / DEFAULT_REPORT_CSV_PATH
@@ -299,7 +299,7 @@ def report(
         return
 
     if output_format != "table":
-        result = validate_project(project)
+        result = validate_project(project, project_root=project_path)
         report_payload = build_report_payload(project, result)
         if output_format == "json":
             if output is None:
@@ -310,7 +310,7 @@ def report(
         console.print("[red]Unsupported report format. Use table, csv, json, or schema.[/red]")
         raise typer.Exit(code=2)
 
-    result = validate_project(project)
+    result = validate_project(project, project_root=project_path)
 
     console.print(f"[bold]Project Report:[/bold] {project.project_id}")
     console.print(f"[bold]Validation Status:[/bold] {'OK' if result.ok else 'FAILED'}")
@@ -399,7 +399,7 @@ def render(
         raise typer.Exit(code=2)
 
     project = _load_or_exit(project_path)
-    result = validate_project(project)
+    result = validate_project(project, project_root=project_path)
     if not result.ok:
         console.print("[red]Project has validation errors; fix them before rendering.[/red]")
         for message in result.errors:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from itertools import combinations
+from pathlib import Path
 from typing import Iterable
 
 from shapely.geometry.base import BaseGeometry
@@ -45,12 +46,18 @@ class ValidationResult:
         return not self.errors
 
 
-def validate_project(project: LandscapeProject) -> ValidationResult:
+def validate_project(
+    project: LandscapeProject,
+    *,
+    project_root: Path | None = None,
+) -> ValidationResult:
     """Run deterministic validation rules against a project."""
 
     messages: list[ValidationMessage] = []
     conditions = project.existing_conditions
     parcel_shape = conditions.parcel.boundary.to_shape()
+    if project_root is not None:
+        messages.extend(_validate_reference_asset_files(project, _resolve_project_root(project_root)))
 
     messages.extend(_validate_unique_ids(project))
     messages.extend(_validate_source_references(project))
@@ -246,6 +253,45 @@ def _validate_source_references(project: LandscapeProject) -> Iterable[Validatio
                 f"{entity.id} source references {entity.source.reference}, but it is not declared.",
                 entity.id,
             )
+
+
+def _validate_reference_asset_files(project: LandscapeProject, project_root: Path) -> tuple[ValidationMessage, ...]:
+    messages: list[ValidationMessage] = []
+
+    for document in project.reference_documents:
+        if not _reference_file_exists(project_root, document.filename):
+            messages.append(
+                ValidationMessage(
+                    "WARNING",
+                    "REFERENCE_DOCUMENT_NOT_FOUND",
+                    f"Reference document {document.id} references missing file: {document.filename}",
+                    document.id,
+                )
+            )
+
+    for photo in project.site_photos:
+        if not _reference_file_exists(project_root, photo.filename):
+            messages.append(
+                ValidationMessage(
+                    "WARNING",
+                    "SITE_PHOTO_NOT_FOUND",
+                    f"Site photo {photo.id} references missing file: {photo.filename}",
+                    photo.id,
+                )
+            )
+
+    return tuple(messages)
+
+
+def _resolve_project_root(project_path: Path) -> Path:
+    return project_path if project_path.is_dir() else project_path.parent
+
+
+def _reference_file_exists(project_root: Path, filename: str) -> bool:
+    path = Path(filename)
+    if path.is_absolute():
+        return path.exists()
+    return (project_root / path).exists()
 
 
 def _validate_utility_clearance(

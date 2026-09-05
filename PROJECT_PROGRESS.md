@@ -21,6 +21,7 @@ Milestone 1 existing-conditions modeling.
 - Split the Greenleaf starter project into separate metadata, reference, and existing-conditions YAML files.
 - Inspect one project entity by stable ID from the CLI.
 - Include calculated geometry metrics in `landscape inspect` output under a separate `calculated` block.
+- List project entities deterministically so stable IDs are discoverable from the CLI.
 
 ## Checklist
 
@@ -52,6 +53,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Split Greenleaf into `project.yaml`, `references.yaml`, and `existing_conditions.yaml`.
 - [x] Add `landscape inspect`.
 - [x] Add calculated geometry metrics to `landscape inspect`.
+- [x] Add `landscape list-entities`.
 
 ## Verification
 
@@ -111,6 +113,15 @@ Milestone 1 existing-conditions modeling.
 - Branch `milestone-1-inspect-metrics`: `.venv/bin/uv run landscape inspect examples/synthetic UTIL001`: reported clearance area and bounds.
 - Branch `milestone-1-inspect-metrics`: `.venv/bin/uv run landscape validate projects/greenleaf`: passed with 0 errors and 0 warnings.
 - Branch `milestone-1-inspect-metrics`: `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run pytest`: 37 passed.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape --help`: listed `list-entities`.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape list-entities examples/synthetic`: listed 17 inspectable entities.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape list-entities examples/synthetic --category tree`: listed 3 tree entities.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape list-entities projects/greenleaf`: listed 3 starter entities.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape validate examples/synthetic`: passed with 0 errors and 0 warnings.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape validate projects/greenleaf`: passed with 0 errors and 0 warnings.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
+- Branch `milestone-1-list-entities`: `.venv/bin/uv run landscape inspect projects/greenleaf PARCEL001`: passed.
 
 ## Pull Request Status
 
@@ -133,6 +144,8 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/8`.
 - Working branch: `milestone-1-inspect-metrics`.
 - Pull request: `https://github.com/niederee/landscape/pull/9`.
+- Working branch: `milestone-1-list-entities`.
+- Pull request: `https://github.com/niederee/landscape/pull/10`.
 
 ## Remaining Limitations
 
@@ -142,13 +155,14 @@ Milestone 1 existing-conditions modeling.
 - Reference records do not require local files to exist yet and do not parse document contents.
 - Split-file loading currently supports `existing_conditions.yaml` and `references.yaml`.
 - Inspection metrics are read-only derived values and are not written back to source YAML.
+- Entity listing uses current schema categories and does not yet include concept/master-plan entities.
 - Quantity reporting and CSV export cover existing conditions only and do not yet calculate costs.
 - Phase dependency validation, concepts, costs, PDF, and DXF remain future milestones.
 
 ## Next Smallest Useful Step
 
-Add a deterministic entity listing command so users can discover stable IDs before
-running `landscape inspect`.
+Add a basic existing-conditions report command that combines validation status,
+entity counts, quantities, and reference summaries for project review.
 
 ## Resume Notes
 

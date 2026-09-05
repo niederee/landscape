@@ -45,3 +45,14 @@ def test_quantities_cli_reports_synthetic_totals():
     assert "Existing Conditions Quantities" in result.output
     assert "HOUSE001" in result.output
     assert "1,642" in result.output
+
+
+def test_quantities_cli_writes_csv(tmp_path):
+    output = tmp_path / "existing_conditions_quantities.csv"
+
+    result = RUNNER.invoke(app, ["quantities", str(FIXTURE), "--format", "csv", "--output", str(output)])
+
+    assert result.exit_code == 0
+    assert "Generated:" in result.output
+    assert output.exists()
+    assert "total,lawn,,,2175,sqft\n" in output.read_text(encoding="utf-8")

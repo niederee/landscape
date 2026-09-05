@@ -2,8 +2,10 @@ from pathlib import Path
 
 from landscape_planner.estimating.quantities import (
     existing_condition_quantities,
+    format_csv_quantity,
     format_quantity,
     summarize_quantities,
+    write_quantities_csv,
 )
 from landscape_planner.io.yaml_loader import load_project
 
@@ -44,3 +46,20 @@ def test_quantity_formatting_avoids_unneeded_decimal_places():
     assert format_quantity(1200) == "1,200"
     assert format_quantity(12.345) == "12.35"
 
+
+def test_csv_quantity_formatting_is_machine_readable():
+    assert format_csv_quantity(1200) == "1200"
+    assert format_csv_quantity(12.34567) == "12.346"
+    assert format_csv_quantity(12.300) == "12.3"
+
+
+def test_write_quantities_csv_includes_detail_and_totals(tmp_path):
+    project = load_project(FIXTURE)
+    output = tmp_path / "quantities.csv"
+
+    write_quantities_csv(existing_condition_quantities(project), output)
+
+    csv_text = output.read_text(encoding="utf-8")
+    assert csv_text.startswith("section,category,entity_id,description,quantity,unit\n")
+    assert "detail,hardscape,DRIVE001,Driveway,912,sqft\n" in csv_text
+    assert "total,hardscape,,,1642,sqft\n" in csv_text

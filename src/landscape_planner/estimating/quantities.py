@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Iterable
 
 from landscape_planner.model.project import LandscapeProject
@@ -98,10 +100,42 @@ def summarize_quantities(items: Iterable[QuantityItem]) -> dict[tuple[str, str],
     return dict(sorted(totals.items()))
 
 
+def write_quantities_csv(items: Iterable[QuantityItem], output_path: str | Path) -> Path:
+    """Write quantity detail and totals to a deterministic CSV file."""
+
+    items = tuple(items)
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    with output.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["section", "category", "entity_id", "description", "quantity", "unit"])
+        for item in items:
+            writer.writerow(
+                [
+                    "detail",
+                    item.category,
+                    item.entity_id,
+                    item.description,
+                    format_csv_quantity(item.quantity),
+                    item.unit,
+                ]
+            )
+        for (category, unit), quantity in summarize_quantities(items).items():
+            writer.writerow(["total", category, "", "", format_csv_quantity(quantity), unit])
+    return output
+
+
+def format_csv_quantity(value: float) -> str:
+    """Format a quantity for machine-readable CSV without thousands separators."""
+
+    if value == int(value):
+        return str(int(value))
+    return f"{value:.3f}".rstrip("0").rstrip(".")
+
+
 def format_quantity(value: float) -> str:
     """Format a calculated quantity without false precision."""
 
     if value == int(value):
         return f"{int(value):,}"
     return f"{value:,.2f}"
-

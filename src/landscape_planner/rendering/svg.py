@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from html import escape
 from pathlib import Path
+import textwrap
 from typing import Iterable
 
 from shapely.geometry import LineString, Point, Polygon
@@ -47,7 +48,7 @@ def existing_conditions_svg(project: LandscapeProject) -> str:
         '<g id="00_background"><rect class="drawing-area" x="72" y="72" '
         'width="1188" height="912" /></g>',
         '<g id="10_property">',
-        _path(parcel, xy, "property-line"),
+        _path(parcel, xy, "property-line", conditions.parcel.id),
         _label(parcel.centroid, xy, conditions.parcel.id, "label property-label"),
         "</g>",
         '<g id="20_existing_structures">',
@@ -82,7 +83,7 @@ def existing_conditions_svg(project: LandscapeProject) -> str:
         cx, cy = xy(tree.point.x, tree.point.y)
         radius = tree.canopy_radius_ft * scale
         elements.append(
-            f'<g class="tree" id="{escape(tree.id)}">'
+            f'<g class="tree" id="{escape(tree.id)}" data-entity-id="{escape(tree.id)}">'
             f'<circle class="tree-canopy" cx="{_fmt(cx)}" cy="{_fmt(cy)}" r="{_fmt(radius)}" />'
             f'<circle class="tree-trunk" cx="{_fmt(cx)}" cy="{_fmt(cy)}" r="{_fmt(max(3, radius * 0.08))}" />'
             "</g>"
@@ -114,11 +115,11 @@ def existing_conditions_svg(project: LandscapeProject) -> str:
     elements.extend(
         [
             '<g id="80_annotations">',
-            _north_arrow(SVG_WIDTH - TITLEBLOCK_WIDTH + 78, 114),
             _graphic_scale(MARGIN, SVG_HEIGHT - MARGIN + 22, scale),
             "</g>",
             '<g id="99_titleblock">',
             _title_block(project),
+            _north_arrow(SVG_WIDTH - TITLEBLOCK_WIDTH + 78, 114, project.coordinate_system.north_rotation_degrees),
             "</g>",
             "</svg>",
         ]
@@ -162,7 +163,7 @@ def _path(shape: BaseGeometry, xy, class_name: str, entity_id: str | None = None
     if not isinstance(shape, Polygon):
         raise TypeError(f"Expected Polygon, got {shape.geom_type}")
     points = " ".join(_point(pair, xy) for pair in shape.exterior.coords)
-    id_attr = f' id="{escape(entity_id)}"' if entity_id else ""
+    id_attr = f' id="{escape(entity_id)}" data-entity-id="{escape(entity_id)}"' if entity_id else ""
     return f'<polygon{id_attr} class="{class_name}" points="{points}" />'
 
 
@@ -170,7 +171,7 @@ def _line(shape: BaseGeometry, xy, class_name: str, entity_id: str | None = None
     if not isinstance(shape, LineString):
         raise TypeError(f"Expected LineString, got {shape.geom_type}")
     points = " ".join(_point(pair, xy) for pair in shape.coords)
-    id_attr = f' id="{escape(entity_id)}"' if entity_id else ""
+    id_attr = f' id="{escape(entity_id)}" data-entity-id="{escape(entity_id)}"' if entity_id else ""
     return f'<polyline{id_attr} class="{class_name}" points="{points}" />'
 
 
@@ -188,7 +189,7 @@ def _label(point: Point, xy, text: str, class_name: str) -> str:
 def _utility_symbol(point: Point, xy, entity_id: str) -> str:
     x, y = xy(point.x, point.y)
     return (
-        f'<g class="utility" id="{escape(entity_id)}" transform="translate({_fmt(x)} {_fmt(y)})">'
+        f'<g class="utility" id="{escape(entity_id)}" data-entity-id="{escape(entity_id)}" transform="translate({_fmt(x)} {_fmt(y)})">'
         '<circle class="utility-symbol" cx="0" cy="0" r="8" />'
         '<line class="utility-symbol-mark" x1="-4" y1="-4" x2="4" y2="4" />'
         '<line class="utility-symbol-mark" x1="4" y1="-4" x2="-4" y2="4" />'
@@ -196,9 +197,9 @@ def _utility_symbol(point: Point, xy, entity_id: str) -> str:
     )
 
 
-def _north_arrow(x: float, y: float) -> str:
+def _north_arrow(x: float, y: float, rotation: float = 0.0) -> str:
     return (
-        f'<g class="north-arrow" transform="translate({_fmt(x)} {_fmt(y)})">'
+        f'<g class="north-arrow" transform="translate({_fmt(x)} {_fmt(y)}) rotate({_fmt(rotation)})">'
         '<path d="M0,-34 L13,20 L0,12 L-13,20 Z" fill="#111" />'
         '<line class="rule" x1="0" y1="20" x2="0" y2="48" />'
         '<text class="meta" x="0" y="72" text-anchor="middle">N</text>'
@@ -222,7 +223,6 @@ def _graphic_scale(x: float, y: float, scale: float) -> str:
 def _title_block(project: LandscapeProject) -> str:
     x = SVG_WIDTH - TITLEBLOCK_WIDTH + 24
     y = SVG_HEIGHT - 270
-    name = escape(project.project.name)
     location = ", ".join(
         item
         for item in [
@@ -238,11 +238,26 @@ def _title_block(project: LandscapeProject) -> str:
         f'<line class="rule" x1="{SVG_WIDTH - TITLEBLOCK_WIDTH}" y1="{y - 24}" x2="1632" y2="{y - 24}" />'
         f'<text class="title" x="{x}" y="{y}">L1.0</text>'
         f'<text class="meta" x="{x}" y="{y + 34}">Existing Conditions</text>'
-        f'<text class="meta" x="{x}" y="{y + 78}">{name}</text>'
-        f'<text class="meta" x="{x}" y="{y + 108}">Project ID: {escape(project.project.id)}</text>'
-        f'<text class="meta" x="{x}" y="{y + 138}">Schema: {project.schema_version}</text>'
-        f'<text class="meta" x="{x}" y="{y + 168}">{escape(location)}</text>'
+        + _title_meta(x, y + 78, project.project.name)
+        + _title_meta(x, y + 122, f"Project ID: {project.project.id}")
+        + f'<text class="meta" x="{x}" y="{y + 168}">Schema: {project.schema_version}</text>'
+        + _title_meta(x, y + 194, location)
     )
+
+
+def _title_meta(x: float, y: float, text: str) -> str:
+    """Bound free text to two lines; keep the complete value in an SVG title."""
+    lines = textwrap.wrap(text, width=28, max_lines=2, placeholder="…") or [""]
+    elements = [f"<g><title>{escape(text)}</title>"]
+    for index, line in enumerate(lines):
+        # Conservative Arial 16px width estimate; unusual wide glyphs receive
+        # a bounded textLength rather than spilling outside the sheet.
+        width = sum(4.5 if c in " il.,:;'!|" else 16 if c in "MW@" or ord(c) > 127
+                    else 11 if c.isupper() else 9 for c in line)
+        fit = ' textLength="252" lengthAdjust="spacingAndGlyphs"' if width > 252 else ""
+        elements.append(f'<text class="meta" x="{_fmt(x)}" y="{_fmt(y + index * 19)}"{fit}>{escape(line)}</text>')
+    elements.append("</g>")
+    return "".join(elements)
 
 
 def _fmt(value: float) -> str:

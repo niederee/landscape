@@ -11,6 +11,44 @@ Longer-lived schema-bearing artifacts (quantities, references manifests, and sim
 are planned under
 `docs/adr/0003-schema-versioning-for-future-artifacts.md`.
 
+For the current assessment and delivery priorities, read
+[`docs/PROJECT_DIRECTION_REVIEW.md`](docs/PROJECT_DIRECTION_REVIEW.md).
+The current product models **existing conditions**; concept generation, phase
+resolution, cost estimates, and construction documentation are still planned.
+The Greenleaf project contains placeholder geometry, not a measured site plan.
+
+## Portable review file
+
+```bash
+uv run landscape render examples/synthetic --format html
+uv run landscape render projects/greenleaf --format html --output generated/greenleaf-review.html
+```
+
+Open `examples/synthetic/generated/html/L1.0_existing_conditions.html` directly
+in a browser. Copying that file alone is sufficient: the drawing, controls,
+entity inspection, quantities, and styles are embedded. No server or network is
+required. Without JavaScript, the plan and review tables remain readable.
+Existing `render` calls still produce SVG by default.
+
+HTML defaults to `--profile share`, which omits project identity/location,
+notes, descriptions, reference filenames, and source-reference strings.
+Entity IDs and drawing labels remain visible: review them before sharing;
+this is metadata filtering, not guaranteed anonymization of a recognizable site.
+Use `--profile private` to include private review metadata. Neither profile
+embeds source documents or photos. Quantities describe the whole snapshot,
+independent of which drawing layers are visible.
+
+This is a read-only existing-conditions review, not a design editor or a
+construction-ready plan. Provenance and unknown accuracy remain visible.
+
+Optional browser acceptance tests:
+
+```bash
+uv sync --extra dev --extra browser
+uv run playwright install chromium
+uv run pytest tests/browser
+```
+
 ## Development
 
 Preferred setup:

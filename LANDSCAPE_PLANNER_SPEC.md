@@ -7,6 +7,15 @@
 **Primary user:** Homeowner / software developer  
 **Primary objective:** Produce professional-quality, multi-option, multi-year residential landscape master plans using deterministic geometry, structured data, reproducible analysis, and high-quality vector drawings.
 
+**Delivery direction (September 5, 2026):** See
+[`docs/PROJECT_DIRECTION_REVIEW.md`](docs/PROJECT_DIRECTION_REVIEW.md) for the
+repository audit and outcome-based roadmap. Adopt
+[`LANDSCAPE_STANDALONE_HTML_SPEC.md`](LANDSCAPE_STANDALONE_HTML_SPEC.md) for output
+priorities, read-only viewer scope, and viewer acceptance criteria. It supersedes
+the original output sequencing and any interpretation of “no GUI initially”
+that would exclude a generated review document. The structured model and
+deterministic geometry principles below remain authoritative.
+
 ---
 
 # 1. Product Vision

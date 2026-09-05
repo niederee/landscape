@@ -83,6 +83,12 @@ def validate_project(
 
     for feature in conditions.linear_features:
         shape = feature.geometry.to_shape()
+        if shape.geom_type != "LineString":
+            messages.append(ValidationMessage(
+                "ERROR", "EXPECTED_LINESTRING",
+                f"{feature.id} line geometry must be a LineString, got {shape.geom_type}.",
+                feature.id,
+            ))
         if not shape.is_valid:
             messages.append(
                 ValidationMessage(
@@ -200,6 +206,8 @@ def _iter_entities(project: LandscapeProject) -> Iterable[Entity]:
     conditions = project.existing_conditions
     yield conditions.parcel
     yield from conditions.structures
+    for structure in conditions.structures:
+        yield from structure.doors
     yield from conditions.hardscape
     yield from conditions.linear_features
     yield from conditions.trees

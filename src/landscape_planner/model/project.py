@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
@@ -24,6 +25,18 @@ SourceType = Literal[
     "unknown",
 ]
 LifecycleStatus = Literal["existing", "proposed"]
+ReferenceDocumentType = Literal[
+    "property_survey",
+    "hoa_rules",
+    "plat",
+    "contractor_proposal",
+    "utility_drawing",
+    "irrigation_drawing",
+    "soil_test",
+    "plant_nursery_estimate",
+    "photo",
+    "other",
+]
 
 
 class SourceInfo(BaseModel):
@@ -99,6 +112,30 @@ class LandscapeProjectInfo(BaseModel):
     name: str
     location: ProjectLocation = Field(default_factory=ProjectLocation)
     units: ProjectUnits = Field(default_factory=ProjectUnits)
+
+
+class ReferenceDocument(Entity):
+    """Source document tracked by the project without parsing its contents."""
+
+    document_type: ReferenceDocumentType
+    filename: str
+    date: dt.date | None = None
+    author: str | None = None
+
+
+class SitePhoto(Entity):
+    """Structured photographic survey metadata."""
+
+    filename: str
+    camera_location: Coordinate | None = None
+    direction_degrees: float | None = Field(default=None, ge=0, lt=360)
+    date: dt.date | None = None
+
+    @property
+    def camera_point(self) -> Point | None:
+        if self.camera_location is None:
+            return None
+        return point_from_coordinate(self.camera_location)
 
 
 class Parcel(Entity):
@@ -301,6 +338,8 @@ class LandscapeProject(BaseModel):
     project: LandscapeProjectInfo
     coordinate_system: CoordinateSystem = Field(default_factory=CoordinateSystem)
     jurisdiction: Jurisdiction | None = None
+    reference_documents: list[ReferenceDocument] = Field(default_factory=list)
+    site_photos: list[SitePhoto] = Field(default_factory=list)
     existing_conditions: ExistingConditions
 
     @property

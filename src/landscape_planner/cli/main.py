@@ -110,6 +110,50 @@ def quantities(
 
 
 @app.command()
+def references(project_path: Path) -> None:
+    """List project reference documents and site photos."""
+
+    project = _load_or_exit(project_path)
+
+    documents = Table(title="Reference Documents")
+    documents.add_column("ID", no_wrap=True)
+    documents.add_column("Type")
+    documents.add_column("Filename")
+    documents.add_column("Date")
+    documents.add_column("Name")
+    for document in sorted(project.reference_documents, key=lambda item: item.id):
+        documents.add_row(
+            document.id,
+            document.document_type,
+            document.filename,
+            document.date.isoformat() if document.date else "",
+            document.name or "",
+        )
+    console.print(documents)
+
+    photos = Table(title="Site Photos")
+    photos.add_column("ID", no_wrap=True)
+    photos.add_column("Filename")
+    photos.add_column("Camera")
+    photos.add_column("Direction")
+    photos.add_column("Date")
+    photos.add_column("Description")
+    for photo in sorted(project.site_photos, key=lambda item: item.id):
+        camera = ""
+        if photo.camera_location is not None:
+            camera = f"{photo.camera_location[0]:g}, {photo.camera_location[1]:g}"
+        photos.add_row(
+            photo.id,
+            photo.filename,
+            camera,
+            f"{photo.direction_degrees:g}" if photo.direction_degrees is not None else "",
+            photo.date.isoformat() if photo.date else "",
+            photo.description or "",
+        )
+    console.print(photos)
+
+
+@app.command()
 def render(
     project_path: Path,
     sheet: str = typer.Option("existing", "--sheet", help="Sheet to render. Currently: existing."),

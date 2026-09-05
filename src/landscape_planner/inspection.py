@@ -6,8 +6,22 @@ from dataclasses import dataclass
 from typing import Iterable
 
 from pydantic import BaseModel
+from shapely.geometry import Point
+from shapely.geometry.base import BaseGeometry
 
-from landscape_planner.model.project import Entity, LandscapeProject
+from landscape_planner.model.project import (
+    Entity,
+    HardscapeArea,
+    LandscapeProject,
+    LawnArea,
+    LinearFeature,
+    Parcel,
+    PlantingBed,
+    SitePhoto,
+    Structure,
+    Tree,
+    UtilityFeature,
+)
 
 
 @dataclass(frozen=True)
@@ -60,3 +74,65 @@ def entity_to_dict(entity: BaseModel) -> dict:
 
     return entity.model_dump(mode="json", by_alias=True, exclude_none=True)
 
+
+def entity_inspection_payload(inspected: InspectedEntity) -> dict:
+    """Build an inspection payload that separates source data from calculations."""
+
+    payload = {
+        "category": inspected.category,
+        "source": entity_to_dict(inspected.entity),
+    }
+    calculated = calculated_metrics(inspected.entity)
+    if calculated:
+        payload["calculated"] = calculated
+    return payload
+
+
+def calculated_metrics(entity: BaseModel) -> dict:
+    """Return deterministic calculated metrics for geometric entities."""
+
+    shape = _entity_shape(entity)
+    if shape is None:
+        return {}
+
+    metrics: dict[str, object] = {
+        "geometry_type": shape.geom_type,
+        "bounds": [_round(value) for value in shape.bounds],
+    }
+    if not isinstance(shape, Point):
+        metrics["centroid"] = [_round(shape.centroid.x), _round(shape.centroid.y)]
+    if shape.area > 0:
+        metrics["area_sqft"] = _round(shape.area)
+    if shape.length > 0:
+        unit = "perimeter_ft" if shape.geom_type in {"Polygon", "MultiPolygon"} else "length_ft"
+        metrics[unit] = _round(shape.length)
+
+    if isinstance(entity, Tree):
+        canopy = entity.point.buffer(entity.canopy_radius_ft)
+        metrics["canopy_area_sqft"] = _round(canopy.area)
+        metrics["canopy_radius_ft"] = _round(entity.canopy_radius_ft)
+    if isinstance(entity, UtilityFeature) and entity.clearance_shape is not None:
+        clearance = entity.clearance_shape
+        metrics["clearance_area_sqft"] = _round(clearance.area)
+        metrics["clearance_bounds"] = [_round(value) for value in clearance.bounds]
+    return metrics
+
+
+def _entity_shape(entity: BaseModel) -> BaseGeometry | None:
+    if isinstance(entity, Parcel):
+        return entity.boundary.to_shape()
+    if isinstance(entity, Structure):
+        return entity.footprint.to_shape()
+    if isinstance(entity, (HardscapeArea, LinearFeature, PlantingBed, LawnArea)):
+        return entity.geometry.to_shape()
+    if isinstance(entity, Tree):
+        return entity.point
+    if isinstance(entity, UtilityFeature):
+        return entity.shape
+    if isinstance(entity, SitePhoto):
+        return entity.camera_point
+    return None
+
+
+def _round(value: float) -> float:
+    return round(value, 3)

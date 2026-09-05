@@ -5,6 +5,8 @@ Deterministic residential landscape planning from structured YAML data.
 The project follows the workflow in `LANDSCAPE_PLANNER_SPEC.md`: structured
 property data is the source of truth, geometry calculations are deterministic,
 and generated drawings are reproducible outputs.
+Report payload schema migration policy is tracked in
+`docs/adr/0002-report-schema-versioning.md`.
 
 ## Development
 

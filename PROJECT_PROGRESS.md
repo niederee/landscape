@@ -25,6 +25,7 @@ Milestone 1 existing-conditions modeling.
 - Add a basic existing-conditions report command for consolidated review output.
 - Add report export formats for downstream workflows.
 - Add machine-readable report schema and deterministic default artifact locations.
+- Add explicit schema-version compatibility checks for report payloads.
 
 ## Checklist
 
@@ -59,6 +60,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Add `landscape list-entities`.
 - [x] Add `landscape report`.
 - [x] Add machine-readable report schema and default report artifact locations.
+- [x] Add schema-version compatibility checks for report payloads.
 
 ## Verification
 
@@ -133,6 +135,7 @@ Milestone 1 existing-conditions modeling.
   `projects/greenleaf/generated/report/landscape_report.json`.
 - Branch `milestone-1-report-export`: `.venv/bin/uv run landscape report projects/greenleaf --format schema` writes
   `projects/greenleaf/generated/report/landscape_report.schema.json`.
+- Branch `milestone-1-report-schema-stability`: `.venv/bin/uv run pytest tests/unit/test_report_schema.py`.
 
 ## Pull Request Status
 
@@ -162,6 +165,8 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/12`.
 - Working branch: `milestone-1-report-schema`.
 - Pull request: `https://github.com/niederee/landscape/pull/13`.
+- Working branch: `milestone-1-report-schema-stability`.
+- Pull request: `https://github.com/niederee/landscape/pull/14`.
 
 ## Remaining Limitations
 
@@ -177,7 +182,7 @@ Milestone 1 existing-conditions modeling.
 
 ## Next Smallest Useful Step
 
-- Add explicit schema-version drift tests for report payload compatibility.
+- Add migration notes for future breaking report schema changes.
 
 ## Resume Notes
 

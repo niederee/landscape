@@ -145,6 +145,7 @@ Milestone 1 existing-conditions modeling.
 - Working branch: `milestone-1-inspect-metrics`.
 - Pull request: `https://github.com/niederee/landscape/pull/9`.
 - Working branch: `milestone-1-list-entities`.
+- Pull request: `https://github.com/niederee/landscape/pull/10`.
 
 ## Remaining Limitations
 

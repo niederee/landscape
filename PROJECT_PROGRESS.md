@@ -151,6 +151,8 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/17`.
 - Working branch: `milestone-1-schema-migration-checks`.
 - Pull request: `https://github.com/niederee/landscape/pull/18`.
+- Working branch: `milestone-1-reference-asset-warnings`.
+- Pull request: `https://github.com/niederee/landscape/pull/19`.
 
 
 ## Pull Request Status
@@ -189,6 +191,8 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/16`.
 - Working branch: `milestone-1-quantities-reference-schema`.
 - Pull request: `https://github.com/niederee/landscape/pull/17`.
+- Working branch: `milestone-1-reference-asset-warnings`.
+- Pull request: `https://github.com/niederee/landscape/pull/19`.
 
 ## Remaining Limitations
 

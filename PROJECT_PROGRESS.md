@@ -153,6 +153,7 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/10`.
 - Merged pull request: `https://github.com/niederee/landscape/pull/11`.
 - Working branch: `milestone-1-report-export`.
+- Pull request: `https://github.com/niederee/landscape/pull/12`.
 
 ## Remaining Limitations
 

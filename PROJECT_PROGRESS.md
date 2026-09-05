@@ -123,6 +123,7 @@ Milestone 1 existing-conditions modeling.
 - Working branch: `milestone-1-split-greenleaf`.
 - Pull request: `https://github.com/niederee/landscape/pull/7`.
 - Working branch: `milestone-1-inspect-entity`.
+- Pull request: `https://github.com/niederee/landscape/pull/8`.
 
 ## Remaining Limitations
 

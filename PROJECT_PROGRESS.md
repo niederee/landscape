@@ -14,6 +14,7 @@ Milestone 1 existing-conditions modeling.
 - Model utility features with either a point `location` or explicit `geometry`.
 - Support utility clearance as either explicit `clearance_zone` geometry or a deterministic buffer from `clearance_radius_ft`.
 - Calculate existing-condition quantities from structured geometry rather than drawings.
+- Export existing-condition quantities as deterministic CSV for downstream analysis.
 
 ## Checklist
 
@@ -36,6 +37,7 @@ Milestone 1 existing-conditions modeling.
 - [x] Render utility symbols and clearance zones on the existing-conditions SVG.
 - [x] Add deterministic existing-conditions quantity reporting.
 - [x] Add `landscape quantities`.
+- [x] Add machine-readable existing-conditions quantity CSV export.
 
 ## Verification
 
@@ -60,6 +62,12 @@ Milestone 1 existing-conditions modeling.
 - Branch `milestone-1-quantity-reporting`: `.venv/bin/uv run landscape quantities projects/greenleaf`: passed with starter placeholder quantities.
 - Branch `milestone-1-quantity-reporting`: `.venv/bin/uv run landscape validate projects/greenleaf`: passed with starter placeholder geometry.
 - Branch `milestone-1-quantity-reporting`: `.venv/bin/uv run landscape render projects/greenleaf --sheet existing`: generated `projects/greenleaf/generated/svg/L1.0_existing_conditions.svg`.
+- Branch `milestone-1-quantity-csv`: `.venv/bin/uv run pytest`: 16 passed.
+- Branch `milestone-1-quantity-csv`: `.venv/bin/uv run landscape quantities examples/synthetic --format csv`: generated `examples/synthetic/generated/csv/existing_conditions_quantities.csv`.
+- Branch `milestone-1-quantity-csv`: `.venv/bin/uv run landscape quantities projects/greenleaf --format csv`: generated `projects/greenleaf/generated/csv/existing_conditions_quantities.csv`.
+- Branch `milestone-1-quantity-csv`: `.venv/bin/uv run landscape validate examples/synthetic`: passed with 0 errors and 0 warnings.
+- Branch `milestone-1-quantity-csv`: `.venv/bin/uv run landscape render examples/synthetic --sheet existing`: generated `examples/synthetic/generated/svg/L1.0_existing_conditions.svg`.
+- Branch `milestone-1-quantity-csv`: `.venv/bin/uv run landscape validate projects/greenleaf`: passed with starter placeholder geometry.
 
 ## Pull Request Status
 
@@ -70,19 +78,21 @@ Milestone 1 existing-conditions modeling.
 - Pull request: `https://github.com/niederee/landscape/pull/2`.
 - Working branch: `milestone-1-quantity-reporting`.
 - Pull request: `https://github.com/niederee/landscape/pull/3`.
+- Working branch: `milestone-1-quantity-csv`.
+- Pull request: `https://github.com/niederee/landscape/pull/4`.
 
 ## Remaining Limitations
 
 - Only schema version 1 is supported.
 - Only `L1.0 Existing Conditions` SVG rendering is implemented.
 - Greenleaf contains placeholder geometry that must be replaced by surveyed/measured data.
-- Quantity reporting covers existing conditions only and does not yet calculate costs.
+- Quantity reporting and CSV export cover existing conditions only and do not yet calculate costs.
 - Phase dependency validation, concepts, costs, PDF, and DXF remain future milestones.
 
 ## Next Smallest Useful Step
 
-Add a machine-readable quantity export, likely CSV, after keeping the CLI table output
-as the human-readable report.
+Add structured source-reference document/photo metadata so real Greenleaf survey materials
+can be tracked before replacing placeholder geometry.
 
 ## Resume Notes
 

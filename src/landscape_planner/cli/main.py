@@ -13,6 +13,7 @@ from landscape_planner.estimating.quantities import (
     existing_condition_quantities,
     format_quantity,
     summarize_quantities,
+    write_quantities_csv,
 )
 from landscape_planner.io.yaml_loader import ProjectLoadError, load_project
 from landscape_planner.rendering.svg import render_existing_conditions_svg
@@ -51,7 +52,16 @@ def validate(project_path: Path) -> None:
 
 
 @app.command()
-def quantities(project_path: Path) -> None:
+def quantities(
+    project_path: Path,
+    output_format: str = typer.Option(
+        "table",
+        "--format",
+        "-f",
+        help="Output format. Supported values: table, csv.",
+    ),
+    output: Path | None = typer.Option(None, "--output", "-o", help="CSV output path."),
+) -> None:
     """Report deterministic existing-conditions quantities."""
 
     project = _load_or_exit(project_path)
@@ -63,6 +73,16 @@ def quantities(project_path: Path) -> None:
         raise typer.Exit(code=1)
 
     items = existing_condition_quantities(project)
+    if output_format == "csv":
+        if output is None:
+            base = project_path if project_path.is_dir() else project_path.parent
+            output = base / "generated" / "csv" / "existing_conditions_quantities.csv"
+        written = write_quantities_csv(items, output)
+        console.print(f"[green]Generated:[/green] {written}")
+        return
+    if output_format != "table":
+        console.print("[red]Unsupported quantity format. Use table or csv.[/red]")
+        raise typer.Exit(code=2)
 
     detail = Table(title="Existing Conditions Quantities")
     detail.add_column("Category")

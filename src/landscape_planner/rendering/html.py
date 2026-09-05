@@ -16,6 +16,7 @@ import tempfile
 import xml.etree.ElementTree as ET
 
 from landscape_planner import __version__
+from landscape_planner.analysis.constraints import constraint_shape
 from landscape_planner.analysis.validation import ValidationResult, validate_project
 from landscape_planner.estimating.quantities import existing_condition_quantities, format_quantity, summarize_quantities
 from landscape_planner.model.project import LandscapeProject
@@ -27,6 +28,8 @@ _LAYERS = (
     ("30_existing_hardscape", "Hardscape and linear features · tan"),
     ("40_existing_vegetation", "Vegetation · green / brown"),
     ("45_existing_utilities", "Utilities and clearances · amber"),
+    ("50_site_constraints", "Scoped exclusions · red"),
+    ("55_existing_fences", "Actual fences · purple"),
 )
 
 _CSS = """
@@ -74,6 +77,9 @@ _JS = """'use strict';
    const lines = [e.name + ' (' + e.id + ')', 'Type: ' + e.type,
      'Source: ' + e.source, 'Confidence: ' + e.confidence,
      'Estimated accuracy: ' + (e.accuracy_ft == null ? 'unknown' : e.accuracy_ft + ' ft')];
+   if (e.applies_to) lines.push('Excludes: ' + e.applies_to.join(', ') + ' only');
+   if (e.edge_index != null) lines.push('Property boundary edge index: ' + e.edge_index);
+   if (e.placement) lines.push('Placement: ' + e.placement);
    e.measurements.forEach(m => lines.push(m));
    if (!e.measurements.length) lines.push('Measurements: not supplied');
    e.warnings.forEach(w => lines.push('Validation: ' + w));
@@ -173,7 +179,7 @@ def existing_conditions_html(
     conditions = view.existing_conditions
     groups = [("parcel", [conditions.parcel])]
     groups += [(key, getattr(conditions, key)) for key in (
-        "structures", "hardscape", "linear_features", "lawn", "planting_beds", "trees", "utilities")]
+        "structures", "hardscape", "linear_features", "lawn", "planting_beds", "trees", "utilities", "site_constraints")]
     entities = []
     for kind, items in groups:
         for item in sorted(items, key=lambda e: e.id):
@@ -181,6 +187,7 @@ def existing_conditions_html(
             for attr, label, unit in (
                 ("area_sqft", "Area", "sqft"), ("length_ft", "Length", "ft"),
                 ("perimeter_ft", "Perimeter", "ft"), ("canopy_radius_ft", "Canopy radius", "ft"),
+                ("distance_ft", "Exclusion distance from property edge", "ft"),
                 ("height_ft", "Height", "ft"), ("trunk_diameter_in", "Trunk diameter", "in"),
             ):
                 value = getattr(item, attr, None)
@@ -194,6 +201,13 @@ def existing_conditions_html(
                 "measurements": measurements,
                 "warnings": [f"{m.severity}: {m.code}" for m in result.messages if m.entity_id == item.id],
             }
+            if kind == "site_constraints":
+                shape = constraint_shape(item, conditions.parcel.boundary)
+                measurements.append(f"Exclusion area: {format_quantity(shape.area)} sqft")
+                entity["applies_to"] = item.applies_to
+                entity["edge_index"] = item.edge_index
+            if kind == "linear_features":
+                entity["placement"] = item.placement
             if profile == "private":
                 entity["notes"] = item.notes
                 entity["source_reference"] = item.source.reference if item.source else None
@@ -223,6 +237,17 @@ def existing_conditions_html(
         f'<td>{escape(e["confidence"])}</td><td>{escape(str(e["accuracy_ft"])) + " ft" if e["accuracy_ft"] is not None else "unknown"}</td></tr>'
         for e in entities
     )
+    constraint_rows = "".join(
+        f'<tr><td>{escape(e["id"])}</td><td>{escape(", ".join(e["applies_to"]))} only</td>'
+        f'<td>{escape("; ".join(e["measurements"]))}</td></tr>'
+        for e in entities if "applies_to" in e
+    )
+    constraint_summary = (
+        '<h2>Supplied exclusions</h2><p>These exclusions apply only to the listed uses. '
+        'Source and confidence are listed above; property edges determine setback distances.</p>'
+        '<table><thead><tr><th scope="col">Constraint</th><th scope="col">Excludes</th>'
+        '<th scope="col">Dimensions</th></tr></thead><tbody>' + constraint_rows + '</tbody></table>'
+    ) if constraint_rows else ""
     layers = "".join(f'<label><input type="checkbox" checked data-layer="plan-{key}"> {escape(label)}</label>' for key, label in _LAYERS)
     entity_list = "".join(f'<li><button type="button" data-entity-id="{escape(e["id"], quote=True)}" aria-pressed="false">{escape(e["name"])} · {escape(e["id"])}</button></li>' for e in entities)
     totals = summarize_quantities(existing_condition_quantities(view))
@@ -236,17 +261,17 @@ def existing_conditions_html(
 <title>{escape(view.project.name)} · Existing conditions</title><style>{_CSS}</style></head>
 <body><header><h1>{escape(view.project.name)}</h1><p>L1.0 · Existing conditions · Read-only review · Local coordinates in feet</p></header>
 <main><section class="card notice"><strong>Planning review — not a construction or survey document.</strong>
-<p>Measurements are calculated from supplied geometry and inherit its uncertainty. Confirm dimensions and source accuracy before design or construction. Missing information is unknown, not zero. Legal constraints, drainage, planting suitability, costs and phasing are not evaluated here. Doors, easements, setbacks and rights-of-way are not drawn in this first viewer.</p>
+<p>Measurements are calculated from supplied geometry and inherit its uncertainty. Confirm dimensions and source accuracy before design or construction. Missing information is unknown, not zero. Supplied exclusions are checked only against their named hardscape subtypes; legal requirements are not independently verified. Drainage, planting suitability, costs and phasing are not evaluated here. Doors, easements, setbacks and rights-of-way are not drawn in this first viewer.</p>
 <p>{escape(privacy)}</p><p>Browser printing is for review; verify scale on the fixed-page SVG for scaled output.</p></section>
 <div class="layout"><div><section class="card"><h2>Site plan</h2>
 <div class="toolbar js-only" aria-label="Plan navigation"><button id="zoom-in" type="button">Zoom in</button><button id="zoom-out" type="button">Zoom out</button><button id="fit" type="button">Fit plan</button>
 <button type="button" data-pan="left" aria-label="Pan left">←</button><button type="button" data-pan="right" aria-label="Pan right">→</button><button type="button" data-pan="up" aria-label="Pan up">↑</button><button type="button" data-pan="down" aria-label="Pan down">↓</button></div>
-<p class="muted">Legend: gray structures; tan hardscape; green lawn and trees; brown beds; amber utilities and clearances; black parcel boundary.</p><p class="js-only muted">Drag to pan. Select a feature or use the searchable list to inspect it.</p><div id="viewport">{svg}</div>
+<p class="muted">Legend: gray structures; tan hardscape; green lawn and trees; brown beds; amber utilities and clearances; black parcel boundary; purple actual fences; translucent dashed red exclusions. Red excludes only the listed uses (such as pools), not all landscaping. Exclusion distances use property edges, never fences.</p><p class="muted">Fences are independent of ownership boundaries. Context fences outside the parcel may extend beyond the fixed sheet; verify their full geometry in the source data.</p><p class="js-only muted">Drag to pan. Select a feature or use the searchable list to inspect it.</p><div id="viewport">{svg}</div>
 <noscript><p>The default plan, quantities and validation summary remain available. Enable JavaScript for navigation, layers and feature inspection.</p></noscript></section>
 <section class="card"><h2>Whole-plan quantities</h2><p>Layer visibility does not change these totals. Categories may overlap; do not add them to infer parcel coverage.</p>
 <table><thead><tr><th scope="col">Category</th><th scope="col">Quantity</th></tr></thead><tbody>{rows}</tbody></table></section>
 <section class="card"><h2>Validation and source status</h2><p>{len(result.errors)} errors · {len(result.warnings)} warnings · {len(result.infos)} information notices.</p>
-<p>Checks cover modeled geometry and references, not site safety or professional approval. Share exports show validation codes; use the original validation report for full details.</p><ul>{warnings}</ul><h2>Measurement provenance</h2><table><thead><tr><th scope="col">Entity</th><th scope="col">Source</th><th scope="col">Confidence</th><th scope="col">Estimated accuracy</th></tr></thead><tbody>{source_rows}</tbody></table></section></div>
+<p>Checks cover modeled geometry and references, not site safety or professional approval. Share exports show validation codes; use the original validation report for full details.</p><ul>{warnings}</ul><h2>Measurement provenance</h2><table><thead><tr><th scope="col">Entity</th><th scope="col">Source</th><th scope="col">Confidence</th><th scope="col">Estimated accuracy</th></tr></thead><tbody>{source_rows}</tbody></table>{constraint_summary}</section></div>
 <aside class="js-only"><section class="card layers"><h2>Layers / legend</h2>{layers}</section>
 <section class="card"><h2>Find a feature</h2><label for="search">Search name or ID</label><input id="search" type="search"><ul id="entity-list">{entity_list}</ul></section>
 <section class="card"><h2>Feature details</h2><div id="inspector" aria-live="polite">Select a feature to view its measurements and source confidence.</div></section></aside></div></main>

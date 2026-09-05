@@ -1,0 +1,12 @@
+schema_version: 1
+source: Synthetic rectangle, not a property survey
+legs:
+- bearing: N
+  distance_ft: 130
+- bearing: E
+  distance_ft: 80
+- bearing: S
+  distance_ft: 130
+- bearing: W
+  distance_ft: 80
+max_closure_error_ft: 0.01

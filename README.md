@@ -144,3 +144,35 @@ entity inspection, Python-calculated quantity differences, dependencies and cost
 allowances. `--planning`, `--output` and `--profile share|private` are supported.
 See [Planning workflow](docs/PLANNING_WORKFLOW.md) for authoring semantics and
 [Site capture guide](docs/SITE_CAPTURE_GUIDE.md) for the real-property inputs.
+
+## Survey-based test plans and scoped exclusions
+
+```bash
+uv run landscape survey examples/constraints/traverse.yaml
+uv run landscape render examples/constraints --format html
+uv run landscape compare examples/constraints
+```
+
+The survey command reconstructs supplied bearings/distances and reports closure;
+it does not extract dimensions from an image or certify survey accuracy. See
+[Survey import](docs/SURVEY_IMPORT.md).
+
+`existing_conditions.site_constraints` stores supplied pool exclusions as an
+explicit polygon or `edge_index` plus `distance_ft`. Edge indices follow the
+parcel's zero-based exterior sequence, including its closing edge. Distances use
+that property edge, not a fence. `applies_to: [pool]` matches proposed hardscape
+subtypes (case-insensitive); it does not prohibit planting. New overlaps fail
+validation; existing conflicts and unverified source interpretation remain warnings.
+The buffer is distance to the selected finite boundary segment with rounded ends,
+clipped to the parcel; confirm the intended geometry when encoding a real restriction.
+
+Existing fences can use `placement: context` to record observed alignment outside
+the parcel with a warning. Proposed fences and other outside geometry still fail.
+Purple fences, black boundaries, and translucent red exclusions have separate
+layers and inspection metadata. Constraint shapes remain fixed across concepts.
+Distant context can extend beyond the fixed drawing sheet.
+
+`examples/constraints` is synthetic. A real-property first test should contain
+transcribed boundary courses plus clearly marked approximate house/fence traces,
+then be reconciled against clean survey details and current measurements before
+using clearances or quantities to make construction decisions.

@@ -25,7 +25,13 @@ jobs:
       - run: uv run landscape render examples/synthetic --format html
       - run: uv run landscape compare examples/synthetic
       - run: uv run landscape phases examples/synthetic
+      - run: uv run landscape survey examples/constraints/traverse.yaml --output examples/constraints/generated/traverse.json
+      - run: uv run landscape render examples/constraints --format html
+      - run: uv run landscape compare examples/constraints
       - uses: actions/upload-artifact@v4
         with:
           name: synthetic-landscape-review
-          path: examples/synthetic/generated/html/*.html
+          path: |
+            examples/synthetic/generated/html/*.html
+            examples/constraints/generated/html/*.html
+            examples/constraints/generated/traverse.json

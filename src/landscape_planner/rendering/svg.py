@@ -7,10 +7,11 @@ from pathlib import Path
 import textwrap
 from typing import Iterable
 
-from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 
 from landscape_planner.model.project import LandscapeProject
+from landscape_planner.analysis.constraints import constraint_shape
 
 SVG_WIDTH = 1632
 SVG_HEIGHT = 1056
@@ -66,6 +67,8 @@ def existing_conditions_svg(project: LandscapeProject) -> str:
         elements.append(_path(shape, xy, f"hardscape hardscape-{escape(hardscape.subtype)}", hardscape.id))
         elements.append(_label(shape.centroid, xy, hardscape.name or hardscape.subtype, "label small"))
     for feature in sorted(conditions.linear_features, key=lambda item: item.id):
+        if feature.subtype == "fence":
+            continue
         elements.append(_line(feature.geometry.to_shape(), xy, "linear-feature", feature.id))
         elements.append(_label(feature.geometry.to_shape().centroid, xy, feature.name or feature.id, "label tiny"))
     elements.append("</g>")
@@ -112,6 +115,26 @@ def existing_conditions_svg(project: LandscapeProject) -> str:
         elements.append(_label(label_point, xy, utility.name or utility.utility_type, "label tiny"))
     elements.append("</g>")
 
+    elements.append('<g id="50_site_constraints">')
+    for constraint in sorted(conditions.site_constraints, key=lambda item: item.id):
+        shape = constraint_shape(constraint, conditions.parcel.boundary)
+        if not shape.is_empty:
+            elements.append(_path(shape, xy, "site-constraint", constraint.id))
+            scope = ", ".join(constraint.applies_to)
+            label = f"{scope} exclusion"
+            if constraint.distance_ft is not None:
+                label += f" · {_fmt(constraint.distance_ft)} ft from property edge"
+            elements.append(_label(shape.representative_point(), xy, label, "label tiny"))
+    elements.append("</g>")
+    # Fences are surveyed physical features, never a replacement parcel boundary.
+    elements.append('<g id="55_existing_fences">')
+    for feature in sorted(conditions.linear_features, key=lambda item: item.id):
+        if feature.subtype == "fence":
+            elements.append(_line(feature.geometry.to_shape(), xy, "fence", feature.id))
+            elements.append(_label(feature.geometry.to_shape().centroid, xy,
+                                   feature.name or feature.id, "label tiny"))
+    elements.append("</g>")
+
     elements.extend(
         [
             '<g id="80_annotations">',
@@ -139,6 +162,8 @@ def _svg_header() -> str:
         ".hardscape{fill:#ece7df;stroke:#5f5a52;stroke-width:1.6}"
         ".hardscape-driveway{fill:#e0dfdc}.hardscape-patio{fill:#e8e1d4}"
         ".linear-feature{fill:none;stroke:#444;stroke-width:2;stroke-dasharray:8 5}"
+        ".site-constraint{fill:#d92d32;fill-opacity:.22;stroke:#ae2026;stroke-width:2;stroke-dasharray:8 5;fill-rule:evenodd}"
+        ".fence{fill:none;stroke:#803cad;stroke-width:3;stroke-dasharray:10 3}"
         ".lawn{fill:#dbe8cf;stroke:#73915d;stroke-width:1.2}"
         ".planting-bed{fill:#d7c8a6;stroke:#7d6d4c;stroke-width:1.4}"
         ".tree-canopy{fill:#bfd1ad;stroke:#40603c;stroke-width:1.4}"
@@ -160,11 +185,19 @@ def _svg_header() -> str:
 
 
 def _path(shape: BaseGeometry, xy, class_name: str, entity_id: str | None = None) -> str:
-    if not isinstance(shape, Polygon):
-        raise TypeError(f"Expected Polygon, got {shape.geom_type}")
-    points = " ".join(_point(pair, xy) for pair in shape.exterior.coords)
+    if not isinstance(shape, (Polygon, MultiPolygon)):
+        raise TypeError(f"Expected Polygon or MultiPolygon, got {shape.geom_type}")
     id_attr = f' id="{escape(entity_id)}" data-entity-id="{escape(entity_id)}"' if entity_id else ""
-    return f'<polygon{id_attr} class="{class_name}" points="{points}" />'
+    if isinstance(shape, Polygon) and not shape.interiors:
+        points = " ".join(_point(pair, xy) for pair in shape.exterior.coords)
+        return f'<polygon{id_attr} class="{class_name}" points="{points}" />'
+    polygons = [shape] if isinstance(shape, Polygon) else shape.geoms
+    rings = []
+    for polygon in polygons:
+        for ring in [polygon.exterior, *polygon.interiors]:
+            points = [_point(pair, xy) for pair in ring.coords]
+            rings.append("M" + " L".join(points) + " Z")
+    return f'<path{id_attr} class="{class_name}" d="{" ".join(rings)}" fill-rule="evenodd" />'
 
 
 def _line(shape: BaseGeometry, xy, class_name: str, entity_id: str | None = None) -> str:

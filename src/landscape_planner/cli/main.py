@@ -454,6 +454,53 @@ def render(
 
 
 
+
+@app.command("survey")
+def survey(
+    traverse_path: Path,
+    output: Path | None = typer.Option(None, "--output", "-o", help="Optional JSON report path; default prints JSON."),
+) -> None:
+    """Reconstruct supplied survey courses and report closure before using a boundary."""
+    import json
+    import os
+    import tempfile
+    from landscape_planner.surveying import load_traverse, reconstruct_traverse
+
+    temporary = None
+    try:
+        if output is not None:
+            protected = {traverse_path, *(traverse_path.parent / name for name in
+                          ("project.yaml", "planning.yaml", "references.yaml", "existing_conditions.yaml"))}
+            if output.resolve() in {path.resolve() for path in protected} or (
+                output.exists() and any(path.exists() and output.samefile(path) for path in protected)
+            ):
+                console.print("Output would overwrite a source input.")
+                raise typer.Exit(code=2)
+            if output.suffix.lower() != ".json":
+                console.print("Survey report output must have a .json extension.")
+                raise typer.Exit(code=2)
+        result = reconstruct_traverse(load_traverse(traverse_path))
+        content = json.dumps(result.model_dump(mode="json"), indent=2, sort_keys=True, allow_nan=False) + "\n"
+        if output is None:
+            typer.echo(content, nl=False)
+        else:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=output.parent,
+                                             prefix=f".{output.name}.", suffix=".tmp", delete=False) as handle:
+                temporary = Path(handle.name)
+                handle.write(content)
+            os.replace(temporary, output)
+            console.print(f"Generated: {output}; accepted={result.accepted}", markup=False)
+        if not result.accepted:
+            raise typer.Exit(code=1)
+    except (OSError, ValueError) as exc:
+        console.print(f"Unable to reconstruct survey: {exc}", markup=False)
+        raise typer.Exit(code=1) from exc
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
+
+
 @app.command("compare")
 def compare(
     project_path: Path,

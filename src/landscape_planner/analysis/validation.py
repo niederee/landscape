@@ -11,6 +11,7 @@ from shapely.geometry.base import BaseGeometry
 from shapely.validation import explain_validity
 
 from landscape_planner.model.project import Entity, LandscapeProject
+from landscape_planner.analysis.constraints import constraint_shape
 
 
 @dataclass(frozen=True)
@@ -101,9 +102,18 @@ def validate_project(
         if not parcel_shape.covers(shape):
             messages.append(
                 ValidationMessage(
-                    "ERROR",
-                    "GEOMETRY_OUTSIDE_PARCEL",
-                    f"{feature.id} line geometry is not fully within the parcel boundary.",
+                    "WARNING" if (
+                        feature.status == "existing" and feature.subtype == "fence"
+                        and feature.placement == "context"
+                    ) else "ERROR",
+                    "EXISTING_FENCE_OUTSIDE_PARCEL" if (
+                        feature.status == "existing" and feature.subtype == "fence"
+                        and feature.placement == "context"
+                    ) else "GEOMETRY_OUTSIDE_PARCEL",
+                    f"{feature.id} line geometry is not fully within the parcel boundary."
+                    + (" Context fence alignment does not define ownership or setbacks."
+                       if feature.status == "existing" and feature.subtype == "fence"
+                       and feature.placement == "context" else ""),
                     feature.id,
                 )
             )
@@ -165,6 +175,7 @@ def validate_project(
                 )
             )
 
+    messages.extend(_validate_site_constraints(project))
     return ValidationResult(tuple(messages))
 
 
@@ -176,6 +187,7 @@ def count_entities(project: LandscapeProject) -> dict[str, int]:
         "Reference documents": len(project.reference_documents),
         "Site photos": len(project.site_photos),
         "Parcel": 1,
+        "Site constraints": len(conditions.site_constraints),
         "Structures": len(conditions.structures),
         "Hardscape": len(conditions.hardscape),
         "Linear features": len(conditions.linear_features),
@@ -205,6 +217,7 @@ def _iter_entities(project: LandscapeProject) -> Iterable[Entity]:
     yield from project.site_photos
     conditions = project.existing_conditions
     yield conditions.parcel
+    yield from conditions.site_constraints
     yield from conditions.structures
     for structure in conditions.structures:
         yield from structure.doors
@@ -339,3 +352,47 @@ def _validate_utility_clearance(
                 f"{utility_id} clearance zone overlaps {label} {target_id} by {overlap_area:.2f} sqft.",
                 utility_id,
             )
+
+
+def _validate_site_constraints(project: LandscapeProject) -> Iterable[ValidationMessage]:
+    """Evaluate supplied exclusions only; do not infer permitting requirements."""
+    conditions = project.existing_conditions
+    parcel = conditions.parcel.boundary.to_shape()
+    for constraint in conditions.site_constraints:
+        yield ValidationMessage(
+            "WARNING", "SITE_CONSTRAINT_UNVERIFIED",
+            f"{constraint.id} is a supplied project constraint; its applicability and "
+            "source interpretation have not been independently verified.", constraint.id,
+        )
+        try:
+            shape = constraint_shape(constraint, conditions.parcel.boundary)
+            if shape.geom_type not in {"Polygon", "MultiPolygon"} or not shape.is_valid or shape.area <= 0:
+                raise ValueError("Exclusion zone must be a valid positive-area polygon or multipolygon.")
+        except ValueError as exc:
+            yield ValidationMessage("ERROR", "INVALID_SITE_CONSTRAINT", str(exc), constraint.id)
+            continue
+        # GEOS intersection can place vertices a few ulps across an oblique
+        # boundary. Compare outside area so an already-clipped setback does
+        # not fail an exact topological predicate due to floating point noise.
+        area_tolerance = max(1e-8, parcel.area * 1e-12)
+        if parcel.is_valid and shape.difference(parcel).area > area_tolerance:
+            yield ValidationMessage(
+                "ERROR", "SITE_CONSTRAINT_OUTSIDE_PARCEL",
+                f"{constraint.id} exclusion zone extends outside the parcel boundary.", constraint.id,
+            )
+        applicable_subtypes = {subtype.strip().casefold() for subtype in constraint.applies_to}
+        for target in sorted(conditions.hardscape, key=lambda item: item.id):
+            if target.subtype.strip().casefold() not in applicable_subtypes:
+                continue
+            target_shape = target.geometry.to_shape()
+            if not target_shape.is_valid or target_shape.geom_type != "Polygon":
+                continue  # Reported by the standard geometry rules.
+            overlap = shape.intersection(target_shape).area
+            if overlap > 0.001:
+                proposed = target.status == "proposed"
+                yield ValidationMessage(
+                    "ERROR" if proposed else "WARNING",
+                    "SITE_CONSTRAINT_VIOLATION" if proposed else "EXISTING_SITE_CONSTRAINT_CONFLICT",
+                    f"{target.id} overlaps supplied constraint {constraint.id} by {overlap:.2f} sqft."
+                    + ("" if proposed else " Existing condition recorded for review."), target.id,
+                )

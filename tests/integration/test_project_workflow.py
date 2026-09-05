@@ -104,6 +104,25 @@ def test_report_cli_includes_counts_quantities_and_references():
     assert "Reference Summary" in result.output
 
 
+def test_report_cli_exports_json():
+    result = RUNNER.invoke(app, ["report", str(FIXTURE), "--format", "json"])
+
+    assert result.exit_code == 0
+    assert '"project_id": "synthetic"' in result.output
+
+
+def test_report_cli_exports_csv(tmp_path):
+    output = tmp_path / "project_report.csv"
+    result = RUNNER.invoke(app, ["report", str(FIXTURE), "--format", "csv", "--output", str(output)])
+
+    assert result.exit_code == 0
+    assert "Generated:" in result.output
+    assert output.exists()
+    text = output.read_text(encoding="utf-8")
+    assert "section,category,unit,count,value,entity_id,message_code,message" in text
+    assert "validation" in text
+
+
 def test_greenleaf_project_loads_from_split_files():
     project = load_project(GREENLEAF)
     result = validate_project(project)
